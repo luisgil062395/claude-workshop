@@ -154,11 +154,6 @@ export function ExpenseCapture() {
     recognitionRef.current?.stop();
   }
 
-  function handleFocusTextarea() {
-    textareaRef.current?.focus();
-    textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
   async function handleReceiptChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -249,9 +244,6 @@ export function ExpenseCapture() {
             )}
 
             <div className="voice-card__links">
-              <button type="button" className="link-btn" onClick={handleFocusTextarea}>
-                ✏️ Escribirlo
-              </button>
               <button
                 type="button"
                 className="link-btn"
