@@ -64,7 +64,6 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 const STATUS_LABELS: Partial<Record<Status, string>> = {
-  listening: "Escuchando...",
   extracting: "Entendiendo...",
   "reading-receipt": "Leyendo el recibo...",
   saving: "Guardando...",
@@ -73,22 +72,25 @@ const STATUS_LABELS: Partial<Record<Status, string>> = {
 
 export function ExpenseCapture() {
   const [input, setInput] = useState("");
+  const [inputSource, setInputSource] = useState<"voice" | "text">("text");
   const [status, setStatus] = useState<Status>("idle");
   const [candidate, setCandidate] = useState<ExpenseCandidate | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [voiceSupported, setVoiceSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     setVoiceSupported(getSpeechRecognition() !== null);
   }, []);
 
-  async function runExtraction(text: string, inputMethod: "voice" | "text") {
+  async function runExtraction(event: FormEvent) {
+    event.preventDefault();
     setStatus("extracting");
     setErrorMessage("");
     const referenceDateISO = new Date().toISOString();
-    const result = await extractExpenseAction(text, referenceDateISO, inputMethod);
+    const result = await extractExpenseAction(input, referenceDateISO, inputSource);
     if (result.ok) {
       setCandidate(result.candidate);
       setStatus("review");
@@ -96,11 +98,6 @@ export function ExpenseCapture() {
       setErrorMessage(result.error);
       setStatus("error");
     }
-  }
-
-  async function handleExtract(event: FormEvent) {
-    event.preventDefault();
-    await runExtraction(input, "text");
   }
 
   function handleStartVoice() {
@@ -119,11 +116,8 @@ export function ExpenseCapture() {
       gotResult = true;
       const transcript = event.results[0]?.[0]?.transcript ?? "";
       setInput(transcript);
-      if (transcript.trim() !== "") {
-        void runExtraction(transcript, "voice");
-      } else {
-        setStatus("idle");
-      }
+      setInputSource("voice");
+      setStatus("idle");
     };
     recognition.onerror = (event) => {
       const messages: Record<string, string> = {
@@ -148,7 +142,7 @@ export function ExpenseCapture() {
           );
           return "error";
         }
-        return "idle";
+        return current;
       });
     };
 
@@ -158,6 +152,11 @@ export function ExpenseCapture() {
 
   function handleStopVoice() {
     recognitionRef.current?.stop();
+  }
+
+  function handleFocusTextarea() {
+    textareaRef.current?.focus();
+    textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   async function handleReceiptChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -212,88 +211,98 @@ export function ExpenseCapture() {
   return (
     <section aria-labelledby="capture-heading" className="capture">
       {status !== "review" && (
-        <div className="capture__intro">
-          <p className="eyebrow">Hola 👋</p>
-          <h1 id="capture-heading">¿En qué gastaste?</h1>
-          <p className="capture__subtitle">
-            Escríbelo, dilo en voz alta, o sube una foto del recibo — yo lo organizo.
-          </p>
-        </div>
-      )}
-
-      {status !== "review" && (
         <>
-          <form onSubmit={handleExtract} className="composer card">
-            <label htmlFor="expense-input" className="visually-hidden">
-              Cuéntame en qué gastaste
-            </label>
-            <textarea
-              id="expense-input"
-              className="composer__input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ej. Ayer gasté 180 pesos en Costco en el súper"
-              required
-              rows={2}
-            />
-            <div className="composer__actions">
-              <div className="composer__tools">
-                <button
-                  type="button"
-                  className="icon-btn"
-                  disabled={isBusy}
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label="Subir foto de recibo"
-                  title="Subir foto de recibo"
-                >
-                  📎
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={handleReceiptChange}
-                  className="visually-hidden"
-                  aria-label="Subir foto de recibo"
-                />
+          <div className="capture__intro">
+            <h1 id="capture-heading">Hola, soy SUMA</h1>
+            <p className="capture__subtitle">Cuéntame un gasto y yo me encargo del resto.</p>
+          </div>
 
-                {voiceSupported && (
-                  <button
-                    type="button"
-                    className={`icon-btn icon-btn--voice ${status === "listening" ? "icon-btn--voice-active" : ""}`}
-                    disabled={isBusy && status !== "listening"}
-                    onClick={status === "listening" ? handleStopVoice : handleStartVoice}
-                    aria-pressed={status === "listening"}
-                    aria-label={status === "listening" ? "Detener grabación" : "Hablar"}
-                    title={status === "listening" ? "Detener grabación" : "Hablar"}
-                  >
-                    🎤
-                  </button>
-                )}
-              </div>
-
+          <div className="voice-card card">
+            {voiceSupported ? (
               <button
-                type="submit"
-                className="btn btn--primary"
-                disabled={isBusy || input.trim() === ""}
+                type="button"
+                className={`mic-button ${status === "listening" ? "mic-button--active" : ""}`}
+                onClick={status === "listening" ? handleStopVoice : handleStartVoice}
+                disabled={isBusy && status !== "listening"}
+                aria-pressed={status === "listening"}
               >
-                {status === "extracting" ? "Entendiendo..." : "Continuar"}
+                🎤
               </button>
-            </div>
-          </form>
-
-          {!voiceSupported && (
-            <p className="field__hint">
-              Tu navegador no soporta entrada por voz. Puedes escribir el gasto o subir una
-              foto del recibo.
+            ) : (
+              <button
+                type="button"
+                className="mic-button mic-button--disabled"
+                disabled
+                aria-hidden="true"
+              >
+                🎤
+              </button>
+            )}
+            <p className="voice-card__label">
+              {status === "listening" ? "Escuchando..." : "Toca para hablar"}
             </p>
-          )}
+
+            {!voiceSupported && (
+              <p className="field__hint">
+                Tu navegador no soporta entrada por voz — escribe tu gasto abajo.
+              </p>
+            )}
+
+            <div className="voice-card__links">
+              <button type="button" className="link-btn" onClick={handleFocusTextarea}>
+                ✏️ Escribirlo
+              </button>
+              <button
+                type="button"
+                className="link-btn"
+                disabled={isBusy}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                📎 Subir recibo
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleReceiptChange}
+                className="visually-hidden"
+                aria-label="Subir foto de recibo"
+              />
+            </div>
+          </div>
+
+          <form onSubmit={runExtraction}>
+            <label htmlFor="expense-input">Transcripción</label>
+            <textarea
+              ref={textareaRef}
+              id="expense-input"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setInputSource("text");
+              }}
+              placeholder="Ej. Ayer gasté 180 pesos en Costco"
+              rows={3}
+            />
+            <p className="field__hint">
+              Puedes corregir el texto y volver a interpretarlo. Nada se guarda hasta que tú lo
+              confirmes.
+            </p>
+
+            <button
+              type="submit"
+              className="btn btn--primary"
+              disabled={isBusy || input.trim() === ""}
+            >
+              {status === "extracting" ? "Entendiendo..." : "Interpretar"}
+            </button>
+          </form>
         </>
       )}
 
       <div role="status" aria-live="polite" className={isBusy ? "status-line status-line--busy" : "status-line"}>
-        {isBusy && <span className="spinner" aria-hidden="true" />}
-        {statusLabel}
+        {isBusy && status !== "listening" && <span className="spinner" aria-hidden="true" />}
+        {status !== "listening" && statusLabel}
       </div>
 
       {status === "review" && candidate && (

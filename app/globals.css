@@ -337,73 +337,49 @@ textarea {
 
 .capture__subtitle {
   color: var(--color-text-secondary);
-  margin: 0;
+  margin: 0 0 var(--space-5);
 }
 
-.composer {
-  padding: var(--space-4);
-}
-
-.composer__input {
-  border: none;
-  padding: var(--space-2) var(--space-1);
-  min-height: 3.5rem;
-  font-size: 1.0625rem;
-  resize: vertical;
-  max-width: none;
-}
-
-.composer__input:focus-visible {
-  outline: none;
-}
-
-.composer__actions {
+.voice-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-.composer__tools {
-  display: flex;
-  align-items: center;
+  text-align: center;
   gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
-.icon-btn {
+.mic-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 88px;
+  height: 88px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: 1.125rem;
+  border: none;
+  background: linear-gradient(135deg, var(--color-brand-green), var(--color-brand-deep) 55%, var(--color-brand-violet));
+  color: #ffffff;
+  font-size: 2rem;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s ease;
 }
 
-.icon-btn:hover:not(:disabled) {
-  background: var(--color-action-subtle);
+.mic-button:hover:not(:disabled) {
+  transform: scale(1.03);
 }
 
-.icon-btn:disabled {
+.mic-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.icon-btn--voice {
-  border: none;
-  background: linear-gradient(135deg, var(--color-brand-green), var(--color-brand-deep) 55%, var(--color-brand-violet));
-  color: #ffffff;
-  box-shadow: var(--shadow-subtle);
+.mic-button--disabled {
+  background: var(--color-disabled-fill);
 }
 
-.icon-btn--voice-active {
+.mic-button--active {
   animation: pulse 1.2s ease-in-out infinite;
 }
 
@@ -412,8 +388,43 @@ textarea {
     box-shadow: 0 0 0 0 rgba(46, 158, 107, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(46, 158, 107, 0);
+    box-shadow: 0 0 0 10px rgba(46, 158, 107, 0);
   }
+}
+
+.voice-card__label {
+  font-weight: 600;
+  margin: var(--space-2) 0 0;
+}
+
+.voice-card__links {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.link-btn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+.link-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Review card */
