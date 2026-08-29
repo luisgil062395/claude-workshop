@@ -1,0 +1,131 @@
+/* Suma Design System v1.0 — tokens.
+   Única fuente de color, tipografía, espacio, radio, sombra y motion.
+   Dark mode se deriva reasignando estos tokens, sin tocar componentes. */
+
+:root {
+  /* ---- Marca: gradiente raro, solo identidad / voz / avatar de IA ---- */
+  --brand-green: #2e9e6b;
+  --brand-deep: #12314f;
+  --brand-violet: #5b34d6;
+  --brand-gradient: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-deep) 52%, var(--brand-violet) 100%);
+  /* Variantes del gradiente medidas en los disenos de Figma. El orbe de voz y el
+     boton del composer son los unicos controles donde aparece el gradiente. */
+  --gradient-orb: linear-gradient(135deg, #3d9698 0%, #4e7bc4 50%, #5751cf 100%);
+  --gradient-bar: linear-gradient(180deg, #82d9c9 0%, #4da0ab 100%);
+  --glow-orb: 0 0 0 6px rgba(87, 81, 207, 0.06), 0 8px 28px rgba(87, 81, 207, 0.28);
+
+  /* ---- Acción y acento ---- */
+  --action-primary: #131a2a;   /* tinta · 15.4:1 */
+  --action-hover: #26313f;
+  --action-pressed: #0a121f;
+  --action-subtle: #f1f2ef;    /* fondo de ghost */
+  --positive: #0e7a55;         /* ingreso, éxito */
+  --ai-accent: #4a2bb5;        /* IA, insight, ahorro */
+  --ai-subtle: #ede8fd;
+  --disabled-fill: #b7bdc6;
+
+  /* ---- Fondos, superficies, bordes ---- */
+  --background: #fbfbfa;
+  --surface: #ffffff;
+  --surface-subtle: #f4f5f3;
+  --border: #e4e6e1;
+  --border-subtle: #eff0ec;
+
+  /* ---- Texto ---- */
+  --text-primary: #131a2a;     /* 15.4:1 */
+  --text-secondary: #5a6472;   /* 6.1:1  */
+  --text-tertiary: #767f8c;    /* 4.6:1  */
+  --text-disabled: #b7bdc6;    /* nunca informativo */
+  --text-on-ink: #ffffff;
+
+  /* ---- Estado del sistema ---- */
+  --success: #0e7a55;
+  --warning: #9a5b00;
+  --error: #b3261e;
+  --info: #2a5cb8;
+  --error-subtle: #fdf0ef;
+  --warning-subtle: #fffbeb;  /* medido en Figma */
+  --success-subtle: #edf7f2;
+
+  /* ---- Paleta de datos · validada para daltonismo y escala de grises ----
+     Valores tomados de las brand guidelines (assets/visual-reference/Design.pdf,
+     seccion 12) y confirmados pixel a pixel contra los disenos de Figma en
+     assets/screenshots/Container3.png. La rampa ordena por luminancia creciente
+     para que los seis niveles sigan siendo legibles sin percibir color. */
+  --chart-1: #0b5c41;  /* Comida     */
+  --chart-2: #6d3fd4;  /* Despensa   */
+  --chart-3: #c07a00;  /* Transporte */
+  --chart-4: #9aa1aa;  /* Otros      */
+  --chart-5: #c4699b;  /* Salud/Ocio */
+  --chart-6: #a8d3ee;  /* Compras    */
+
+  /* ---- Tipografía ---- */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --display-size: 40px;   --display-line: 44px;   --display-track: -1.4px;
+  --h1-size: 30px;        --h1-line: 36px;        --h1-track: -0.9px;
+  --h2-size: 24px;        --h2-line: 30px;        --h2-track: -0.48px;
+  --h3-size: 19px;        --h3-line: 26px;
+  --body-lg-size: 18px;   --body-lg-line: 28px;
+  --body-size: 16px;      --body-line: 26px;
+  --body-sm-size: 14px;   --body-sm-line: 22px;
+  --label-size: 13px;     --label-line: 17px;     --label-track: 0.26px;
+  --caption-size: 12px;   --caption-line: 16px;
+  --amount-lg-size: 34px; --amount-lg-line: 38px;
+  --amount-size: 20px;    --amount-line: 24px;
+  --chat-size: 16.5px;    --chat-line: 27px;
+
+  /* ---- Espaciado · escala base 4 ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radio ---- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* ---- Elevación ---- */
+  --shadow-subtle: 0 1px 2px rgba(19, 26, 42, 0.04), 0 1px 3px rgba(19, 26, 42, 0.06);
+  --shadow-medium: 0 2px 6px rgba(19, 26, 42, 0.06), 0 6px 16px rgba(19, 26, 42, 0.08);
+  --shadow-high: 0 8px 24px rgba(19, 26, 42, 0.10), 0 24px 48px rgba(19, 26, 42, 0.12);
+
+  /* ---- Motion · cuatro duraciones, dos curvas ---- */
+  --motion-instant: 120ms;
+  --motion-quick: 180ms;
+  --motion-base: 240ms;
+  --motion-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- Medidas del layout ---- */
+  --header-height: 56px;
+  --sidebar-width: 280px;
+  --thread-max: 720px;
+  --tablet-max: 640px;
+  --row-height: 72px;
+  --control-height: 48px;
+  --control-height-sm: 40px;
+  --control-height-lg: 56px;
+  --touch-min: 44px;
+  --focus-ring: 2px;
+  --focus-offset: 3px;
+
+  /* ---- Medidas tomadas de los disenos de Figma (390pt, escala 1:1) ---- */
+  --screen-pad: 20px;   /* pantallas de datos: insights, historial */
+  --thread-pad: 16px;   /* superficies conversacionales */
+  --avatar: 40px;       /* circulo de categoria en la fila de transaccion */
+  --orb: 64px;          /* boton de voz */
+  --segment-height: 40px;
+  --chart-height: 82px;
+}
