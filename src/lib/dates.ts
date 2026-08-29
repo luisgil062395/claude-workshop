@@ -117,7 +117,9 @@ export function resolveRelativeDate(
     return toISODate(addDays(today, -1));
   }
 
-  const weeksAgoMatch = text.match(/hace\s+(\d+|una|un|dos|tres|cuatro)\s+semanas?|(\d+)\s+weeks?\s+ago|last\s+week/);
+  const weeksAgoMatch = text.match(
+    /hace\s+(\d+|una|un|dos|tres|cuatro)\s+semanas?|(\d+|one|two|three|four)\s+weeks?\s+ago|last\s+week/,
+  );
   if (weeksAgoMatch) {
     if (/last\s+week/.test(text)) return toISODate(addDays(today, -7));
     const raw = weeksAgoMatch[1] ?? weeksAgoMatch[2];
@@ -125,7 +127,9 @@ export function resolveRelativeDate(
     return toISODate(addDays(today, -7 * n));
   }
 
-  const daysAgoMatch = text.match(/hace\s+(\d+|un|una|dos|tres|cuatro|cinco)\s+dias?|(\d+)\s+days?\s+ago/);
+  const daysAgoMatch = text.match(
+    /hace\s+(\d+|un|una|dos|tres|cuatro|cinco)\s+dias?|(\d+|one|two|three|four|five)\s+days?\s+ago/,
+  );
   if (daysAgoMatch) {
     const raw = daysAgoMatch[1] ?? daysAgoMatch[2];
     const n = wordToNumber(raw);
@@ -171,7 +175,19 @@ export function resolveRelativeDate(
 }
 
 function wordToNumber(raw: string): number {
-  const words: Record<string, number> = { un: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5 };
+  const words: Record<string, number> = {
+    un: 1,
+    una: 1,
+    dos: 2,
+    tres: 3,
+    cuatro: 4,
+    cinco: 5,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+  };
   if (raw in words) return words[raw];
   const n = parseInt(raw, 10);
   return Number.isNaN(n) ? 1 : n;
