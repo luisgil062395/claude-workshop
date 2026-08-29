@@ -59,7 +59,7 @@ export function getMonthRange(referenceDate: Date): { start: string; end: string
   return { start: formatDateYYYYMMDD(first), end: formatDateYYYYMMDD(last) };
 }
 
-export type DailyTotal = { date: string; total: number };
+export type DailyTotal = { date: string; total: number; count: number };
 
 export async function getDailyTotals(
   days: number,
@@ -76,8 +76,10 @@ export async function getDailyTotals(
   });
 
   const totals = new Map<string, number>();
+  const counts = new Map<string, number>();
   for (const expense of expenses) {
     totals.set(expense.date, (totals.get(expense.date) ?? 0) + expense.amount);
+    counts.set(expense.date, (counts.get(expense.date) ?? 0) + 1);
   }
 
   const result: DailyTotal[] = [];
@@ -85,7 +87,7 @@ export async function getDailyTotals(
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     const iso = formatDateYYYYMMDD(d);
-    result.push({ date: iso, total: totals.get(iso) ?? 0 });
+    result.push({ date: iso, total: totals.get(iso) ?? 0, count: counts.get(iso) ?? 0 });
   }
   return result;
 }

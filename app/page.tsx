@@ -11,6 +11,7 @@ import { CATEGORY_LABELS } from "@/lib/categories";
 import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
 import { SpendingTrend } from "@/components/SpendingTrend";
+import { TransactionFrequency } from "@/components/TransactionFrequency";
 
 // Always reflect the latest expenses - never statically prerendered/cached.
 export const dynamic = "force-dynamic";
@@ -70,7 +71,10 @@ export default async function DashboardPage() {
         </div>
       </dl>
 
-      <h2>Tendencia (últimos 30 días)</h2>
+      <h2>Frecuencia de transacciones (últimos 30 días)</h2>
+      <TransactionFrequency daily={dailyTotals} />
+
+      <h2>Gasto diario (últimos 30 días)</h2>
       <SpendingTrend daily={dailyTotals} />
 
       <div className="insights">

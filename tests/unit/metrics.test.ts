@@ -79,9 +79,9 @@ describe("getDailyTotals", () => {
 
     const daily = await getDailyTotals(3, new Date("2026-08-27T10:00:00"));
     expect(daily).toEqual([
-      { date: "2026-08-25", total: 20 },
-      { date: "2026-08-26", total: 0 },
-      { date: "2026-08-27", total: 100 },
+      { date: "2026-08-25", total: 20, count: 1 },
+      { date: "2026-08-26", total: 0, count: 0 },
+      { date: "2026-08-27", total: 100, count: 2 },
     ]);
   });
 });

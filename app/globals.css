@@ -625,6 +625,16 @@ textarea {
   fill: var(--color-brand-green);
 }
 
+.freq-bar {
+  fill: var(--color-brand-green);
+  opacity: 0.85;
+}
+
+.freq-bar--active,
+.freq-bar:hover {
+  opacity: 1;
+}
+
 .trend-chart__tooltip {
   position: absolute;
   top: 0;
