@@ -6,14 +6,17 @@ import {
   getDailyTotals,
   getBiggestExpense,
   getWeekdayBreakdown,
+  getWeekPeriodData,
+  getMonthPeriodData,
+  getYearPeriodData,
 } from "@/lib/metrics";
 import { prisma } from "@/lib/db";
 import { CATEGORY_LABELS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
 import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
-import { SpendingTrend } from "@/components/SpendingTrend";
 import { WeekdaySpending } from "@/components/WeekdaySpending";
+import { PeriodSelector } from "@/components/PeriodSelector";
 
 // Always reflect the latest expenses - never statically prerendered/cached.
 export const dynamic = "force-dynamic";
@@ -29,19 +32,23 @@ export default async function DashboardPage() {
   const [
     weekTotal,
     lastWeekTotal,
-    monthTotal,
     categoryBreakdown,
     dailyTotals,
     biggestExpense,
     recentExpenses,
+    weekPeriod,
+    monthPeriod,
+    yearPeriod,
   ] = await Promise.all([
     getTotalForPeriod(week.start, week.end),
     getTotalForPeriod(lastWeek.start, lastWeek.end),
-    getTotalForPeriod(month.start, month.end),
     getSpendingByCategory(month.start, month.end),
     getDailyTotals(30, now),
     getBiggestExpense(month.start, month.end),
     prisma.expense.findMany({ orderBy: [{ date: "desc" }, { createdAt: "desc" }], take: 8 }),
+    getWeekPeriodData(now),
+    getMonthPeriodData(now),
+    getYearPeriodData(now),
   ]);
 
   if (recentExpenses.length === 0) {
@@ -62,19 +69,8 @@ export default async function DashboardPage() {
   return (
     <section aria-labelledby="dashboard-heading">
       <h1 id="dashboard-heading">¿Cómo voy con mi dinero?</h1>
-      <dl className="totals">
-        <div>
-          <dt>Esta semana</dt>
-          <dd>−${formatAmount(weekTotal)}</dd>
-        </div>
-        <div>
-          <dt>Este mes</dt>
-          <dd>−${formatAmount(monthTotal)}</dd>
-        </div>
-      </dl>
 
-      <h2>Gasto diario (últimos 30 días)</h2>
-      <SpendingTrend daily={dailyTotals} />
+      <PeriodSelector week={weekPeriod} month={monthPeriod} year={yearPeriod} />
 
       <h2>Gasto por día de la semana</h2>
       <WeekdaySpending breakdown={getWeekdayBreakdown(dailyTotals)} />

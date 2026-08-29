@@ -178,3 +178,50 @@ export async function buildFinancialContext(referenceDate: Date): Promise<string
 
   return lines.join("\n");
 }
+
+export type PeriodBar = { label: string; total: number };
+export type PeriodData = { total: number; bars: PeriodBar[] };
+
+const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+export async function getWeekPeriodData(referenceDate: Date): Promise<PeriodData> {
+  const week = getWeekRange(referenceDate);
+  const daily = await getDailyTotals(7, referenceDate);
+  const bars = daily.map((d) => ({
+    label: WEEKDAY_LABELS[(new Date(`${d.date}T00:00:00`).getDay() + 6) % 7],
+    total: d.total,
+  }));
+  return { total: await getTotalForPeriod(week.start, week.end), bars };
+}
+
+export async function getMonthPeriodData(referenceDate: Date): Promise<PeriodData> {
+  const month = getMonthRange(referenceDate);
+  const daysInMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0).getDate();
+  const daily = await getDailyTotals(daysInMonth, new Date(month.end));
+  const bars = daily.map((d) => ({ label: String(Number(d.date.slice(8, 10))), total: d.total }));
+  return { total: await getTotalForPeriod(month.start, month.end), bars };
+}
+
+export async function getYearPeriodData(referenceDate: Date): Promise<PeriodData> {
+  const year = referenceDate.getFullYear();
+  const start = `${year}-01-01`;
+  const end = `${year}-12-31`;
+
+  const expenses = await prisma.expense.findMany({
+    where: { date: { gte: start, lte: end } },
+    select: { date: true, amount: true },
+  });
+
+  const totals = new Array(12).fill(0);
+  let grandTotal = 0;
+  for (const expense of expenses) {
+    const monthIndex = Number(expense.date.slice(5, 7)) - 1;
+    totals[monthIndex] += expense.amount;
+    grandTotal += expense.amount;
+  }
+
+  return {
+    total: grandTotal,
+    bars: MONTH_LABELS.map((label, i) => ({ label, total: totals[i] })),
+  };
+}

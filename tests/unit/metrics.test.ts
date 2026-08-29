@@ -8,6 +8,7 @@ import {
   getDailyTotals,
   getBiggestExpense,
   getWeekdayBreakdown,
+  getYearPeriodData,
 } from "@/lib/metrics";
 
 beforeEach(async () => {
@@ -126,5 +127,25 @@ describe("getBiggestExpense", () => {
   it("returns null when there are no expenses in the period", async () => {
     const biggest = await getBiggestExpense("2026-08-01", "2026-08-31");
     expect(biggest).toBeNull();
+  });
+});
+
+describe("getYearPeriodData", () => {
+  it("returns 12 monthly bars with totals and a grand total", async () => {
+    await prisma.expense.createMany({
+      data: [
+        { amount: 100, description: "A", category: "food", date: "2026-01-15", inputMethod: "text" },
+        { amount: 50, description: "B", category: "food", date: "2026-01-20", inputMethod: "text" },
+        { amount: 200, description: "C", category: "food", date: "2026-08-05", inputMethod: "text" },
+        { amount: 999, description: "Out of year", category: "food", date: "2025-12-31", inputMethod: "text" },
+      ],
+    });
+
+    const result = await getYearPeriodData(new Date("2026-08-28T10:00:00"));
+    expect(result.bars).toHaveLength(12);
+    expect(result.bars[0]).toEqual({ label: "Ene", total: 150 });
+    expect(result.bars[7]).toEqual({ label: "Ago", total: 200 });
+    expect(result.bars[1]).toEqual({ label: "Feb", total: 0 });
+    expect(result.total).toBe(350);
   });
 });
