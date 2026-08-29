@@ -61,6 +61,16 @@ const EXTRACT_EXPENSE_TOOL = {
   },
 };
 
+function extractToolUseInput(message: Anthropic.Message): RawExtractedCandidate {
+  const toolUse = message.content.find(
+    (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
+  );
+  if (!toolUse) {
+    throw new Error("Claude did not return a tool_use block");
+  }
+  return toolUse.input as RawExtractedCandidate;
+}
+
 export async function extractExpenseFromText(
   rawInput: string
 ): Promise<RawExtractedCandidate> {
@@ -72,11 +82,34 @@ export async function extractExpenseFromText(
     messages: [{ role: "user", content: rawInput }],
   });
 
-  const toolUse = message.content.find(
-    (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
-  );
-  if (!toolUse) {
-    throw new Error("Claude did not return a tool_use block");
-  }
-  return toolUse.input as RawExtractedCandidate;
+  return extractToolUseInput(message);
+}
+
+export async function extractExpenseFromImage(
+  base64Image: string,
+  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif"
+): Promise<RawExtractedCandidate> {
+  const message = await client.messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: 1024,
+    tools: [EXTRACT_EXPENSE_TOOL],
+    tool_choice: { type: "tool", name: "extract_expense" },
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: { type: "base64", media_type: mediaType, data: base64Image },
+          },
+          {
+            type: "text",
+            text: "This is a photo of a receipt. Extract the expense. Never invent information that is not visible on the receipt — if a field is not legible, use your best reasonable guess and lower the confidence score accordingly.",
+          },
+        ],
+      },
+    ],
+  });
+
+  return extractToolUseInput(message);
 }

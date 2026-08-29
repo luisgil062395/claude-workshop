@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { extractExpenseFromText } from "@/lib/ai/extract";
+import {
+  extractExpenseFromText,
+  extractExpenseFromImage,
+  type RawExtractedCandidate,
+} from "@/lib/ai/extract";
 import { extractedCandidateSchema, normalizeCategory } from "@/lib/validation";
 import { resolveDateExpression } from "@/lib/dates";
 import { prisma } from "@/lib/db";
@@ -23,48 +27,77 @@ export type ExtractResult =
 const GENERIC_EXTRACTION_ERROR =
   "No pude entender ese gasto claramente. ¿Puedes reformularlo o ingresar el monto manualmente?";
 
+const RECEIPT_EXTRACTION_ERROR =
+  "No pude leer el recibo claramente. Intenta con otra foto o ingresa los datos manualmente.";
+
+function buildCandidate(
+  raw: RawExtractedCandidate,
+  referenceDateISO: string,
+  rawInput: string | undefined,
+  inputMethod: "voice" | "text" | "receipt"
+): ExtractResult {
+  const parsed = extractedCandidateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: inputMethod === "receipt" ? RECEIPT_EXTRACTION_ERROR : GENERIC_EXTRACTION_ERROR,
+    };
+  }
+
+  const uncertainFields: string[] = [];
+
+  const { category, wasNormalized } = normalizeCategory(parsed.data.category);
+  if (wasNormalized) uncertainFields.push("category");
+
+  const { date, resolved } = resolveDateExpression(
+    parsed.data.dateExpression,
+    new Date(referenceDateISO)
+  );
+  if (!resolved) uncertainFields.push("date");
+
+  if (parsed.data.confidence < 0.6) {
+    uncertainFields.push("amount", "description");
+  }
+
+  return {
+    ok: true,
+    candidate: {
+      amount: parsed.data.amount,
+      currency: parsed.data.currency.toUpperCase(),
+      description: parsed.data.description,
+      category,
+      date,
+      rawInput,
+      inputMethod,
+      confidence: parsed.data.confidence,
+      uncertainFields,
+    },
+  };
+}
+
 export async function extractExpense(
   rawInput: string,
-  referenceDateISO: string
+  referenceDateISO: string,
+  inputMethod: "voice" | "text" = "text"
 ): Promise<ExtractResult> {
   try {
     const raw = await extractExpenseFromText(rawInput);
-    const parsed = extractedCandidateSchema.safeParse(raw);
-    if (!parsed.success) {
-      return { ok: false, error: GENERIC_EXTRACTION_ERROR };
-    }
-
-    const uncertainFields: string[] = [];
-
-    const { category, wasNormalized } = normalizeCategory(parsed.data.category);
-    if (wasNormalized) uncertainFields.push("category");
-
-    const { date, resolved } = resolveDateExpression(
-      parsed.data.dateExpression,
-      new Date(referenceDateISO)
-    );
-    if (!resolved) uncertainFields.push("date");
-
-    if (parsed.data.confidence < 0.6) {
-      uncertainFields.push("amount", "description");
-    }
-
-    return {
-      ok: true,
-      candidate: {
-        amount: parsed.data.amount,
-        currency: parsed.data.currency.toUpperCase(),
-        description: parsed.data.description,
-        category,
-        date,
-        rawInput,
-        inputMethod: "text",
-        confidence: parsed.data.confidence,
-        uncertainFields,
-      },
-    };
+    return buildCandidate(raw, referenceDateISO, rawInput, inputMethod);
   } catch {
     return { ok: false, error: GENERIC_EXTRACTION_ERROR };
+  }
+}
+
+export async function extractExpenseFromReceipt(
+  base64Image: string,
+  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif",
+  referenceDateISO: string
+): Promise<ExtractResult> {
+  try {
+    const raw = await extractExpenseFromImage(base64Image, mediaType);
+    return buildCandidate(raw, referenceDateISO, undefined, "receipt");
+  } catch {
+    return { ok: false, error: RECEIPT_EXTRACTION_ERROR };
   }
 }
 
