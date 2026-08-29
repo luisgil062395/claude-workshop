@@ -8,6 +8,7 @@ import {
   getDailyTotals,
   getBiggestExpense,
   getYearPeriodData,
+  getMonthPeriodData,
 } from "@/lib/metrics";
 
 beforeEach(async () => {
@@ -124,5 +125,26 @@ describe("getYearPeriodData", () => {
     expect(result.bars[7]).toEqual({ label: "Ago", total: 200 });
     expect(result.bars[1]).toEqual({ label: "Feb", total: 0 });
     expect(result.total).toBe(350);
+  });
+});
+
+describe("getMonthPeriodData", () => {
+  it("groups the month's daily totals into week-of-month buckets", async () => {
+    // August 2026 has 31 days -> 5 week buckets (days 1-7, 8-14, 15-21, 22-28, 29-31)
+    await prisma.expense.createMany({
+      data: [
+        { amount: 40, description: "A", category: "food", date: "2026-08-03", inputMethod: "text" },
+        { amount: 60, description: "B", category: "food", date: "2026-08-10", inputMethod: "text" },
+        { amount: 999, description: "Out of month", category: "food", date: "2026-07-31", inputMethod: "text" },
+        { amount: 30, description: "C", category: "food", date: "2026-08-31", inputMethod: "text" },
+      ],
+    });
+
+    const result = await getMonthPeriodData(new Date("2026-08-28T10:00:00"));
+    expect(result.bars).toHaveLength(5);
+    expect(result.bars[0]).toEqual({ label: "Sem 1", total: 40 });
+    expect(result.bars[1]).toEqual({ label: "Sem 2", total: 60 });
+    expect(result.bars[4]).toEqual({ label: "Sem 5", total: 30 });
+    expect(result.total).toBe(130);
   });
 });

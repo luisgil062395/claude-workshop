@@ -176,9 +176,29 @@ export async function getWeekPeriodData(referenceDate: Date): Promise<PeriodData
 
 export async function getMonthPeriodData(referenceDate: Date): Promise<PeriodData> {
   const month = getMonthRange(referenceDate);
-  const daysInMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0).getDate();
-  const daily = await getDailyTotals(daysInMonth, new Date(month.end));
-  const bars = daily.map((d) => ({ label: String(Number(d.date.slice(8, 10))), total: d.total }));
+  // Build the last-day-of-month as a local Date directly, rather than
+  // re-parsing month.end ("YYYY-MM-DD") with `new Date(string)` - that
+  // form is parsed as UTC midnight, which can land on the previous local
+  // calendar day west of UTC and silently shift the whole day range.
+  const lastDayOfMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
+  const daysInMonth = lastDayOfMonth.getDate();
+  const daily = await getDailyTotals(daysInMonth, lastDayOfMonth);
+
+  // Group into week-of-month buckets (days 1-7, 8-14, ...) instead of one
+  // bar per day - up to 31 daily bars is illegible, especially on mobile.
+  const weekTotals = new Map<number, number>();
+  for (const day of daily) {
+    const dayOfMonth = Number(day.date.slice(8, 10));
+    const weekIndex = Math.floor((dayOfMonth - 1) / 7);
+    weekTotals.set(weekIndex, (weekTotals.get(weekIndex) ?? 0) + day.total);
+  }
+
+  const numWeeks = Math.ceil(daysInMonth / 7);
+  const bars: PeriodBar[] = Array.from({ length: numWeeks }, (_, i) => ({
+    label: `Sem ${i + 1}`,
+    total: weekTotals.get(i) ?? 0,
+  }));
+
   return { total: await getTotalForPeriod(month.start, month.end), bars };
 }
 
