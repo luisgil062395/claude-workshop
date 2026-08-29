@@ -41,7 +41,7 @@ export function ExpenseReviewCard({
 
   return (
     <form onSubmit={handleSubmit} aria-labelledby="review-heading" className="card review-card">
-      <p className="review-card__eyebrow">Entendí</p>
+      <p className="eyebrow">Entendí</p>
       <h2 id="review-heading" className="review-card__amount">
         {currency} {amount || "0"}
       </h2>

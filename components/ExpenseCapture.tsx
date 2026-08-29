@@ -63,6 +63,14 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+const STATUS_LABELS: Partial<Record<Status, string>> = {
+  listening: "Escuchando...",
+  extracting: "Entendiendo...",
+  "reading-receipt": "Leyendo el recibo...",
+  saving: "Guardando...",
+  saved: "Gasto guardado.",
+};
+
 export function ExpenseCapture() {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -76,10 +84,7 @@ export function ExpenseCapture() {
     setVoiceSupported(getSpeechRecognition() !== null);
   }, []);
 
-  async function runExtraction(
-    text: string,
-    inputMethod: "voice" | "text"
-  ) {
+  async function runExtraction(text: string, inputMethod: "voice" | "text") {
     setStatus("extracting");
     setErrorMessage("");
     const referenceDateISO = new Date().toISOString();
@@ -202,24 +207,71 @@ export function ExpenseCapture() {
   }
 
   const isBusy = status === "extracting" || status === "reading-receipt" || status === "listening";
+  const statusLabel = status === "error" ? errorMessage : STATUS_LABELS[status];
 
   return (
-    <section aria-labelledby="capture-heading">
-      <h1 id="capture-heading">Agregar gasto</h1>
+    <section aria-labelledby="capture-heading" className="capture">
+      {status !== "review" && (
+        <div className="capture__intro">
+          <p className="eyebrow">Hola 👋</p>
+          <h1 id="capture-heading">¿En qué gastaste?</h1>
+          <p className="capture__subtitle">
+            Escríbelo, dilo en voz alta, o sube una foto del recibo — yo lo organizo.
+          </p>
+        </div>
+      )}
 
       {status !== "review" && (
         <>
-          <form onSubmit={handleExtract}>
-            <label htmlFor="expense-input">Cuéntame en qué gastaste</label>
+          <form onSubmit={handleExtract} className="composer card">
+            <label htmlFor="expense-input" className="visually-hidden">
+              Cuéntame en qué gastaste
+            </label>
             <textarea
               id="expense-input"
+              className="composer__input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ej. Ayer gasté 180 pesos en Costco en el súper"
               required
-              rows={3}
+              rows={2}
             />
-            <div className="form-actions">
+            <div className="composer__actions">
+              <div className="composer__tools">
+                <button
+                  type="button"
+                  className="icon-btn"
+                  disabled={isBusy}
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label="Subir foto de recibo"
+                  title="Subir foto de recibo"
+                >
+                  📎
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleReceiptChange}
+                  className="visually-hidden"
+                  aria-label="Subir foto de recibo"
+                />
+
+                {voiceSupported && (
+                  <button
+                    type="button"
+                    className={`icon-btn icon-btn--voice ${status === "listening" ? "icon-btn--voice-active" : ""}`}
+                    disabled={isBusy && status !== "listening"}
+                    onClick={status === "listening" ? handleStopVoice : handleStartVoice}
+                    aria-pressed={status === "listening"}
+                    aria-label={status === "listening" ? "Detener grabación" : "Hablar"}
+                    title={status === "listening" ? "Detener grabación" : "Hablar"}
+                  >
+                    🎤
+                  </button>
+                )}
+              </div>
+
               <button
                 type="submit"
                 className="btn btn--primary"
@@ -227,35 +279,6 @@ export function ExpenseCapture() {
               >
                 {status === "extracting" ? "Entendiendo..." : "Continuar"}
               </button>
-
-              {voiceSupported && (
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={isBusy && status !== "listening"}
-                  onClick={status === "listening" ? handleStopVoice : handleStartVoice}
-                  aria-pressed={status === "listening"}
-                >
-                  {status === "listening" ? "Detener 🎤" : "Hablar 🎤"}
-                </button>
-              )}
-
-              <button
-                type="button"
-                className="btn"
-                disabled={isBusy}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Subir recibo 📷
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={handleReceiptChange}
-                className="visually-hidden"
-                aria-label="Subir foto de recibo"
-              />
             </div>
           </form>
 
@@ -268,13 +291,9 @@ export function ExpenseCapture() {
         </>
       )}
 
-      <div role="status" aria-live="polite">
-        {status === "listening" && "Escuchando..."}
-        {status === "extracting" && "Entendiendo..."}
-        {status === "reading-receipt" && "Leyendo el recibo..."}
-        {status === "saving" && "Guardando..."}
-        {status === "saved" && "Gasto guardado."}
-        {status === "error" && errorMessage}
+      <div role="status" aria-live="polite" className={isBusy ? "status-line status-line--busy" : "status-line"}>
+        {isBusy && <span className="spinner" aria-hidden="true" />}
+        {statusLabel}
       </div>
 
       {status === "review" && candidate && (
