@@ -839,6 +839,7 @@ textarea {
   align-items: center;
   gap: var(--space-1);
   flex: 1;
+  min-width: 0;
 }
 
 .weekday-chart__value {
@@ -847,14 +848,22 @@ textarea {
   font-variant-numeric: tabular-nums;
   color: var(--color-text-primary);
   height: 1rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weekday-chart__track {
   display: flex;
   align-items: flex-end;
+  justify-content: center;
+  width: 100%;
 }
 
 .weekday-chart__bar {
+  width: 100%;
+  max-width: 32px;
   background: var(--color-brand-green);
   border-radius: var(--radius-xs) var(--radius-xs) 0 0;
 }
@@ -862,6 +871,10 @@ textarea {
 .weekday-chart__label {
   font-size: 0.8125rem;
   color: var(--color-text-secondary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Insight tiles */

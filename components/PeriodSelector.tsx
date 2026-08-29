@@ -13,7 +13,6 @@ const TABS: { key: Period; label: string }[] = [
 ];
 
 const HEIGHT = 140;
-const BAR_WIDTH = 32;
 
 export function PeriodSelector({
   week,
@@ -66,7 +65,7 @@ export function PeriodSelector({
                 {showLabels && bar.total > 0 ? `$${formatAmountCompact(bar.total)}` : ""}
               </span>
               <div className="weekday-chart__track" style={{ height: HEIGHT }}>
-                <div className="weekday-chart__bar" style={{ height: barHeight, width: BAR_WIDTH }} />
+                <div className="weekday-chart__bar" style={{ height: barHeight }} />
               </div>
               <span className="weekday-chart__label">{bar.label}</span>
             </div>
