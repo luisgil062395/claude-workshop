@@ -7,7 +7,6 @@ import {
   getMonthRange,
   getDailyTotals,
   getBiggestExpense,
-  getWeekdayBreakdown,
   getYearPeriodData,
 } from "@/lib/metrics";
 
@@ -84,28 +83,6 @@ describe("getDailyTotals", () => {
       { date: "2026-08-25", total: 20, count: 1 },
       { date: "2026-08-26", total: 0, count: 0 },
       { date: "2026-08-27", total: 100, count: 2 },
-    ]);
-  });
-});
-
-describe("getWeekdayBreakdown", () => {
-  it("groups daily totals into Mon-Sun buckets", () => {
-    // 2026-08-24 is a Monday, 2026-08-29 is a Saturday
-    const daily = [
-      { date: "2026-08-24", total: 50, count: 1 },
-      { date: "2026-08-25", total: 0, count: 0 },
-      { date: "2026-08-29", total: 30, count: 1 },
-    ];
-
-    const breakdown = getWeekdayBreakdown(daily);
-    expect(breakdown).toEqual([
-      { weekday: "Lun", total: 50, count: 1 },
-      { weekday: "Mar", total: 0, count: 0 },
-      { weekday: "Mié", total: 0, count: 0 },
-      { weekday: "Jue", total: 0, count: 0 },
-      { weekday: "Vie", total: 0, count: 0 },
-      { weekday: "Sáb", total: 30, count: 1 },
-      { weekday: "Dom", total: 0, count: 0 },
     ]);
   });
 });

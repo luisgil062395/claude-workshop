@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { PeriodData } from "@/lib/metrics";
-import { formatAmount } from "@/lib/format";
+import { formatAmount, formatAmountCompact } from "@/lib/format";
 
 type Period = "week" | "month" | "year";
 
@@ -11,6 +11,9 @@ const TABS: { key: Period; label: string }[] = [
   { key: "month", label: "Este mes" },
   { key: "year", label: "Este año" },
 ];
+
+const HEIGHT = 140;
+const BAR_WIDTH = 32;
 
 export function PeriodSelector({
   week,
@@ -24,6 +27,7 @@ export function PeriodSelector({
   const [period, setPeriod] = useState<Period>("week");
   const data = period === "week" ? week : period === "month" ? month : year;
   const max = Math.max(...data.bars.map((b) => b.total), 1);
+  const showLabels = data.bars.length <= 12;
 
   return (
     <div className="period-selector">
@@ -50,25 +54,24 @@ export function PeriodSelector({
       </div>
 
       <div
-        className="period-selector__chart"
+        className="weekday-chart"
         role="img"
         aria-label={`Gasto por ${period === "week" ? "día" : period === "month" ? "día del mes" : "mes"}, total $${formatAmount(data.total)}`}
       >
-        {data.bars.map((bar, i) => (
-          <div className="period-selector__col" key={`${bar.label}-${i}`}>
-            <div
-              className={
-                i === data.bars.length - 1
-                  ? "period-selector__bar period-selector__bar--current"
-                  : "period-selector__bar"
-              }
-              style={{ height: `${Math.max((bar.total / max) * 100, bar.total > 0 ? 4 : 0)}%` }}
-            />
-            {data.bars.length <= 12 && (
-              <span className="period-selector__col-label">{bar.label}</span>
-            )}
-          </div>
-        ))}
+        {data.bars.map((bar, i) => {
+          const barHeight = bar.total > 0 ? Math.max((bar.total / max) * HEIGHT, 4) : 0;
+          return (
+            <div className="weekday-chart__col" key={`${bar.label}-${i}`}>
+              <span className="weekday-chart__value">
+                {showLabels && bar.total > 0 ? `$${formatAmountCompact(bar.total)}` : ""}
+              </span>
+              <div className="weekday-chart__track" style={{ height: HEIGHT }}>
+                <div className="weekday-chart__bar" style={{ height: barHeight, width: BAR_WIDTH }} />
+              </div>
+              <span className="weekday-chart__label">{bar.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -3,9 +3,7 @@ import {
   getSpendingByCategory,
   getWeekRange,
   getMonthRange,
-  getDailyTotals,
   getBiggestExpense,
-  getWeekdayBreakdown,
   getWeekPeriodData,
   getMonthPeriodData,
   getYearPeriodData,
@@ -15,7 +13,6 @@ import { CATEGORY_LABELS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
 import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
-import { WeekdaySpending } from "@/components/WeekdaySpending";
 import { PeriodSelector } from "@/components/PeriodSelector";
 
 // Always reflect the latest expenses - never statically prerendered/cached.
@@ -33,7 +30,6 @@ export default async function DashboardPage() {
     weekTotal,
     lastWeekTotal,
     categoryBreakdown,
-    dailyTotals,
     biggestExpense,
     recentExpenses,
     weekPeriod,
@@ -43,7 +39,6 @@ export default async function DashboardPage() {
     getTotalForPeriod(week.start, week.end),
     getTotalForPeriod(lastWeek.start, lastWeek.end),
     getSpendingByCategory(month.start, month.end),
-    getDailyTotals(30, now),
     getBiggestExpense(month.start, month.end),
     prisma.expense.findMany({ orderBy: [{ date: "desc" }, { createdAt: "desc" }], take: 8 }),
     getWeekPeriodData(now),
@@ -71,9 +66,6 @@ export default async function DashboardPage() {
       <h1 id="dashboard-heading">¿Cómo voy con mi dinero?</h1>
 
       <PeriodSelector week={weekPeriod} month={monthPeriod} year={yearPeriod} />
-
-      <h2>Gasto por día de la semana</h2>
-      <WeekdaySpending breakdown={getWeekdayBreakdown(dailyTotals)} />
 
       <div className="insights">
         {weekDelta !== null && (
