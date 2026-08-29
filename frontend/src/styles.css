@@ -90,8 +90,86 @@ th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* ---- Voice entry ---------------------------------------------------- */
+
+.entry { display: grid; gap: 1.25rem; }
+
+textarea {
+  width: 100%;
+  padding: 0.7rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  resize: vertical;
+}
+
+.voice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.voice-status { margin: 0; font-size: 0.9rem; color: var(--muted); }
+
+/* State is carried by the label text; weight and a dot add emphasis without
+   making colour the only signal. */
+.phase { font-weight: 600; color: var(--text); }
+.phase-listening::before,
+.phase-transcribing::before,
+.phase-extracting::before { content: "\25CF "; color: var(--accent); }
+.phase-done::before { content: "\2713 "; color: var(--accent); }
+
+.interim { font-style: italic; color: var(--muted); }
+
+button.secondary {
+  background: none;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.hint { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--muted); }
+
+.notice {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  background: #f3f0ea;
+  border-left: 3px solid var(--muted);
+  border-radius: 4px;
+}
+
+.uncertain {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #8a5a00;
+}
+
+input[aria-invalid="true"], select[aria-invalid="true"] { border-color: #8a5a00; }
+.error + .uncertain { display: none; }
+
+.provenance {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: #e8f0ea;
+  border-radius: 999px;
+}
+
 @media (min-width: 48rem) {
-  main { grid-template-columns: 22rem 1fr; align-items: start; }
+  main { grid-template-columns: 24rem 1fr; align-items: start; }
   .app { padding: 2.5rem 1.5rem; }
 }
 

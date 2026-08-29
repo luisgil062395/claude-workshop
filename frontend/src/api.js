@@ -30,3 +30,11 @@ export const createExpense = (expense) =>
   request("/expenses/", { method: "POST", body: JSON.stringify(expense) });
 export const deleteExpense = (id) =>
   request(`/expenses/${id}/`, { method: "DELETE" });
+
+// Interprets natural language into an UNSAVED draft. Saving is a separate,
+// explicit call to createExpense().
+export const extractExpense = (text, inputMethod) =>
+  request("/extract/", {
+    method: "POST",
+    body: JSON.stringify({ text, input_method: inputMethod }),
+  });

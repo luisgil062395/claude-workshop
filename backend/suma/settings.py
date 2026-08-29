@@ -10,10 +10,36 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _load_env_file(path):
+    """Load backend/.env into os.environ if the file exists.
+
+    Deliberately not python-dotenv: the project needs exactly one secret, and a
+    dependency to parse `KEY=value` isn't worth the install for a workshop
+    project whose goal is understanding what it runs. Real environment
+    variables always win, so this never overrides deployment configuration.
+
+    Handles comments, blank lines and surrounding quotes -- not multi-line
+    values or `export` prefixes. If configuration ever outgrows that, switch to
+    python-dotenv rather than growing this function.
+    """
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
+_load_env_file(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
