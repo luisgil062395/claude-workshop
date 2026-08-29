@@ -61,7 +61,8 @@ export function TransactionFrequency({ daily }: { daily: DailyTotal[] }) {
 
       {hovered && (
         <div className="trend-chart__tooltip" role="status">
-          {formatDayLabel(hovered.date)}: {hovered.count} {hovered.count === 1 ? "transacción" : "transacciones"}
+          {formatDayLabel(hovered.date)}: {hovered.count} {hovered.count === 1 ? "transacción" : "transacciones"} ·
+          ${hovered.total.toFixed(2)}
         </div>
       )}
     </div>
