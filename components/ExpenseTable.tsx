@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { ExpenseReviewCard } from "@/components/ExpenseReviewCard";
 import { updateExpenseAction, deleteExpenseAction } from "@/app/expenses/actions";
-import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS } from "@/lib/categories";
+import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 type ExpenseRow = {
   id: string;
@@ -68,10 +69,13 @@ export function ExpenseTable({ expenses }: { expenses: ExpenseRow[] }) {
                 <span className="expense-table__row">
                   <span
                     className="expense-list__icon"
-                    style={{ background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a` }}
+                    style={{
+                      background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a`,
+                      color: CATEGORY_COLORS[expense.category] ?? "#6B7280",
+                    }}
                     aria-hidden="true"
                   >
-                    {CATEGORY_ICONS[expense.category] ?? "📦"}
+                    <CategoryIcon category={expense.category} />
                   </span>
                   {expense.description}
                 </span>

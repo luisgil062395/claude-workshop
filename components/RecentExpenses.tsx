@@ -1,5 +1,6 @@
-import { CATEGORY_ICONS, CATEGORY_NAMES, CATEGORY_COLORS } from "@/lib/categories";
+import { CATEGORY_NAMES, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 type Expense = {
   id: string;
@@ -19,10 +20,13 @@ export function RecentExpenses({ expenses }: { expenses: Expense[] }) {
           <li key={expense.id} className="expense-list__item">
             <span
               className="expense-list__icon"
-              style={{ background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a` }}
+              style={{
+                background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a`,
+                color: CATEGORY_COLORS[expense.category] ?? "#6B7280",
+              }}
               aria-hidden="true"
             >
-              {CATEGORY_ICONS[expense.category] ?? "📦"}
+              <CategoryIcon category={expense.category} />
             </span>
             <div className="expense-list__body">
               <div className="expense-list__description">{expense.description}</div>

@@ -1,6 +1,7 @@
 import type { CategoryBreakdown } from "@/lib/metrics";
-import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/lib/categories";
+import { CATEGORY_NAMES, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] }) {
   if (breakdown.length === 0) {
@@ -11,8 +12,14 @@ export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] })
     <div className="category-bars" aria-label="Gasto por categoría este mes">
       {breakdown.map((row) => (
         <div className="category-bars__row" key={row.category}>
-          <span className="category-bars__label">
-            {CATEGORY_LABELS[row.category] ?? row.category}
+          <span
+            className="category-bars__label"
+            style={{ color: CATEGORY_COLORS[row.category] ?? "#6B7280" }}
+          >
+            <CategoryIcon category={row.category} size={16} />
+          </span>
+          <span className="category-bars__name">
+            {CATEGORY_NAMES[row.category] ?? row.category}
           </span>
           <div className="category-bar">
             <div
