@@ -84,3 +84,129 @@ main {
 .field__hint {
   font-size: 0.875rem;
 }
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+select {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 30rem;
+}
+
+.nav__list {
+  list-style: none;
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav__list a {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--color-border);
+    border-bottom: none;
+    z-index: 10;
+  }
+
+  .nav__list {
+    justify-content: space-around;
+    padding: var(--space-2);
+    border-bottom: none;
+  }
+
+  main {
+    padding-bottom: 4rem;
+  }
+}
+
+.totals {
+  display: flex;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.totals dt {
+  font-size: 0.875rem;
+  color: #52606d;
+}
+
+.totals dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.category-bar {
+  position: relative;
+  background: var(--color-border);
+  border-radius: var(--radius);
+  height: 1.25rem;
+  min-width: 8rem;
+  display: flex;
+  align-items: center;
+}
+
+.category-bar__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.category-bar span {
+  position: relative;
+  padding: 0 var(--space-2);
+  font-size: 0.75rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--space-3) 0;
+}
+
+caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+th,
+td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field-inline {
+  display: inline-flex;
+  flex-direction: column;
+  margin-right: var(--space-3);
+  margin-bottom: var(--space-3);
+}
