@@ -645,17 +645,24 @@ textarea {
   margin: 0;
 }
 
-.nav__list a {
+.nav__icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   text-decoration: none;
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: 0.9375rem;
-  font-weight: 500;
 }
 
-.nav__list a:hover {
+.nav__icon-link:hover {
   color: var(--color-text-primary);
+  background: var(--color-action-subtle);
+}
+
+.nav__icon-link--active {
+  color: var(--color-action-primary);
   background: var(--color-action-subtle);
 }
 
