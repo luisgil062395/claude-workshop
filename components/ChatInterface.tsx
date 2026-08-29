@@ -49,9 +49,8 @@ export function ChatInterface() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isSending]);
 
-  async function handleSend(event: FormEvent) {
-    event.preventDefault();
-    const text = input.trim();
+  async function sendMessage(rawText: string) {
+    const text = rawText.trim();
     if (!text || isSending) return;
 
     const nextHistory: ChatMessage[] = [...messages, { role: "user", content: text }];
@@ -68,6 +67,11 @@ export function ChatInterface() {
     } else {
       setErrorMessage(result.error);
     }
+  }
+
+  async function handleSend(event: FormEvent) {
+    event.preventDefault();
+    await sendMessage(input);
   }
 
   function handleStartVoice() {
@@ -109,10 +113,29 @@ export function ChatInterface() {
 
       <div className="chat__thread">
         {messages.length === 0 && (
-          <p className="chat__empty">
-            Pregúntame sobre tus gastos o pide una recomendación — por ejemplo:{" "}
-            <em>&quot;¿Qué recomendaciones tienes?&quot;</em>
-          </p>
+          <div className="chat__empty">
+            <Image src="/logo.png" alt="" width={48} height={48} />
+            <h2 className="chat__empty-title">Hola, soy Suma</h2>
+            <p className="chat__empty-subtitle">
+              Cuéntame un gasto o pregúntame algo sobre tu dinero.
+            </p>
+            <div className="chat__suggestions">
+              <button
+                type="button"
+                className="chat__suggestion"
+                onClick={() => sendMessage("¿Cómo puedo mejorar mis finanzas?")}
+              >
+                ¿Cómo puedo mejorar mis finanzas?
+              </button>
+              <button
+                type="button"
+                className="chat__suggestion"
+                onClick={() => sendMessage("¿Qué recomendaciones tienes?")}
+              >
+                ¿Qué recomendaciones tienes?
+              </button>
+            </div>
+          </div>
         )}
 
         {messages.map((message, index) =>
