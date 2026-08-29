@@ -1,4 +1,5 @@
 import type { WeekdayTotal } from "@/lib/metrics";
+import { formatAmountCompact } from "@/lib/format";
 
 const HEIGHT = 140;
 const BAR_WIDTH = 32;
@@ -17,7 +18,7 @@ export function WeekdaySpending({ breakdown }: { breakdown: WeekdayTotal[] }) {
         return (
           <div className="weekday-chart__col" key={day.weekday}>
             <span className="weekday-chart__value">
-              {day.total > 0 ? `$${Math.round(day.total)}` : ""}
+              {day.total > 0 ? `$${formatAmountCompact(day.total)}` : ""}
             </span>
             <div className="weekday-chart__track" style={{ height: HEIGHT }}>
               <div

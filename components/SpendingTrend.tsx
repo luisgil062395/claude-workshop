@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import type { DailyTotal } from "@/lib/metrics";
+import { formatAmount } from "@/lib/format";
 
 const WIDTH = 640;
 const HEIGHT = 160;
@@ -94,7 +95,7 @@ export function SpendingTrend({ daily }: { daily: DailyTotal[] }) {
 
       {hovered && (
         <div className="trend-chart__tooltip" role="status">
-          {formatDayLabel(hovered.date)}: ${hovered.total.toFixed(2)}
+          {formatDayLabel(hovered.date)}: ${formatAmount(hovered.total)}
         </div>
       )}
     </div>

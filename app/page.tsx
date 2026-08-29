@@ -9,6 +9,7 @@ import {
 } from "@/lib/metrics";
 import { prisma } from "@/lib/db";
 import { CATEGORY_LABELS } from "@/lib/categories";
+import { formatAmount } from "@/lib/format";
 import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
 import { SpendingTrend } from "@/components/SpendingTrend";
@@ -64,11 +65,11 @@ export default async function DashboardPage() {
       <dl className="totals">
         <div>
           <dt>Esta semana</dt>
-          <dd>${weekTotal.toFixed(2)}</dd>
+          <dd>${formatAmount(weekTotal)}</dd>
         </div>
         <div>
           <dt>Este mes</dt>
-          <dd>${monthTotal.toFixed(2)}</dd>
+          <dd>${formatAmount(monthTotal)}</dd>
         </div>
       </dl>
 
@@ -81,7 +82,7 @@ export default async function DashboardPage() {
       <div className="insights">
         {weekDelta !== null && (
           <p className="insight-tile">
-            Esta semana gastaste <strong>${weekTotal.toFixed(2)}</strong>,{" "}
+            Esta semana gastaste <strong>${formatAmount(weekTotal)}</strong>,{" "}
             <strong>
               {Math.abs(weekDelta)}% {weekDelta >= 0 ? "más" : "menos"}
             </strong>{" "}
@@ -99,7 +100,7 @@ export default async function DashboardPage() {
           <p className="insight-tile">
             Tu gasto más grande este mes: <strong>{biggestExpense.description}</strong> por{" "}
             <strong>
-              {biggestExpense.currency} {biggestExpense.amount.toFixed(2)}
+              {biggestExpense.currency} {formatAmount(biggestExpense.amount)}
             </strong>
             .
           </p>

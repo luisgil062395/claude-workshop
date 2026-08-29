@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ExpenseReviewCard } from "@/components/ExpenseReviewCard";
 import { updateExpenseAction, deleteExpenseAction } from "@/app/expenses/actions";
 import { CATEGORY_LABELS } from "@/lib/categories";
+import { formatAmount } from "@/lib/format";
 
 type ExpenseRow = {
   id: string;
@@ -65,7 +66,7 @@ export function ExpenseTable({ expenses }: { expenses: ExpenseRow[] }) {
             <tr key={expense.id}>
               <td>{expense.description}</td>
               <td>
-                {expense.currency} {expense.amount.toFixed(2)}
+                {expense.currency} {formatAmount(expense.amount)}
               </td>
               <td>{CATEGORY_LABELS[expense.category] ?? expense.category}</td>
               <td>{expense.date}</td>

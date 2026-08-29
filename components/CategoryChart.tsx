@@ -1,5 +1,6 @@
 import type { CategoryBreakdown } from "@/lib/metrics";
 import { CATEGORY_LABELS } from "@/lib/categories";
+import { formatAmount } from "@/lib/format";
 
 export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] }) {
   if (breakdown.length === 0) {
@@ -17,7 +18,7 @@ export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] })
             <div className="category-bar__fill" style={{ width: `${row.percentage}%` }} />
           </div>
           <span className="category-bars__value">
-            ${row.total.toFixed(2)}
+            ${formatAmount(row.total)}
             <span>{row.percentage}%</span>
           </span>
         </div>

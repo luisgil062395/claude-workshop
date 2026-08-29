@@ -1,4 +1,5 @@
 import { CATEGORY_LABELS } from "@/lib/categories";
+import { formatAmount } from "@/lib/format";
 
 type Expense = {
   id: string;
@@ -23,7 +24,7 @@ export function RecentExpenses({ expenses }: { expenses: Expense[] }) {
               </div>
             </div>
             <div className="expense-list__amount">
-              {expense.currency} {expense.amount.toFixed(2)}
+              {expense.currency} {formatAmount(expense.amount)}
             </div>
           </li>
         ))}
