@@ -1,10 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic(
-  process.env.ANTHROPIC_WORKSPACE_ID
-    ? { defaultHeaders: { "anthropic-workspace-id": process.env.ANTHROPIC_WORKSPACE_ID } }
-    : undefined
-);
+import { anthropic as client } from "@/lib/ai/client";
 
 export type RawExtractedCandidate = {
   amount: number;

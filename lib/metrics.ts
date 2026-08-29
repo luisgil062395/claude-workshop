@@ -134,3 +134,47 @@ export async function getBiggestExpense(
   });
   return expense ?? null;
 }
+
+export async function buildFinancialContext(referenceDate: Date): Promise<string> {
+  const month = getMonthRange(referenceDate);
+  const [monthTotal, categoryBreakdown, biggestExpense, recentExpenses] = await Promise.all([
+    getTotalForPeriod(month.start, month.end),
+    getSpendingByCategory(month.start, month.end),
+    getBiggestExpense(month.start, month.end),
+    prisma.expense.findMany({
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      take: 15,
+      select: { description: true, amount: true, currency: true, category: true, date: true },
+    }),
+  ]);
+
+  const lines: string[] = [];
+  lines.push(`Gasto total este mes (${month.start} a ${month.end}): $${monthTotal.toFixed(2)} MXN.`);
+  lines.push(`Número de transacciones registradas: ${recentExpenses.length > 0 ? "al menos " + recentExpenses.length : 0}.`);
+
+  if (categoryBreakdown.length > 0) {
+    lines.push("Gasto por categoría este mes:");
+    for (const c of categoryBreakdown) {
+      lines.push(`- ${c.category}: $${c.total.toFixed(2)} (${c.percentage}% del total)`);
+    }
+  }
+
+  if (biggestExpense) {
+    lines.push(
+      `Gasto más grande este mes: "${biggestExpense.description}" por ${biggestExpense.currency} ${biggestExpense.amount.toFixed(2)} el ${biggestExpense.date}, categoría ${biggestExpense.category}.`
+    );
+  }
+
+  if (recentExpenses.length > 0) {
+    lines.push("Transacciones más recientes:");
+    for (const e of recentExpenses) {
+      lines.push(`- ${e.date}: ${e.description} — ${e.currency} ${e.amount.toFixed(2)} (${e.category})`);
+    }
+  }
+
+  if (recentExpenses.length === 0) {
+    lines.push("El usuario aún no ha registrado ningún gasto.");
+  }
+
+  return lines.join("\n");
+}

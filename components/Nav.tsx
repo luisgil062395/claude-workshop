@@ -18,6 +18,9 @@ export function Nav() {
           <li>
             <a href="/expenses">Historial</a>
           </li>
+          <li>
+            <a href="/chat">Chat</a>
+          </li>
         </ul>
       </div>
     </nav>
