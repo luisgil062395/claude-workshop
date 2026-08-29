@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id           String   @id @default(cuid())
+  amount       Float
+  currency     String   @default("MXN")
+  description  String
+  category     String
+  date         String
+  createdAt    DateTime @default(now())
+  inputMethod  String
+
+  rawInput     String?
+  receiptImage String?
+  confidence   Float?
+
+  locationName String?
+  latitude     Float?
+  longitude    Float?
+
+  tax          Float?
+  tip          Float?
+
+  items        ReceiptItem[]
+}
+
+model ReceiptItem {
+  id          String  @id @default(cuid())
+  description String
+  quantity    Float?
+  amount      Float
+  expenseId   String
+  expense     Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+}
