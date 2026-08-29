@@ -539,6 +539,37 @@ The assistant can calculate:
 
 ------------------------------------------------------------------------
 
+# 14.1 Nota de implementación — Metas y horizonte financiero
+
+*(Añadido durante la implementación. No modifica los requisitos anteriores.)*
+
+Las metas de ahorro (§14) y el horizonte financiero ("¿cuánto me dura el
+dinero?") están implementados con dos modelos:
+
+- `FinancialGoal` — `name`, `target_amount`, `current_amount`, `target_date?`.
+- `RunwayPlan` — singleton que también cumple el rol del perfil financiero
+  (§12): ahorros, ingreso, gastos esenciales y otros, plazo deseado, y
+  `essential_overrides` para que el usuario decida qué es esencial *para él*.
+
+**Todo cálculo es determinista y vive en `expenses/finance.py`**, nunca en
+Claude (§32.8, §30): horizonte en meses, gasto máximo por mes, progreso,
+porcentajes y guías semanales/diarias. Claude podrá explicar los resultados más
+adelante, pero jamás produce las cifras.
+
+Casos indefinidos devuelven un `status` en lugar de un número engañoso —
+`sustainable`, `no_savings`, `no_expenses` — y el promedio mensual es `null`
+cuando no hay suficiente historial, en vez de inventarse (§13, §24).
+
+El endpoint `POST /api/ask/` permite preguntar en lenguaje natural: Django
+reúne los datos, `finance.py` calcula, y Claude únicamente redacta el
+resultado distinguiendo hechos, cálculos, escenarios e incertidumbre (§13).
+Si una cifra no está en el contexto calculado, el asistente lo dice en vez de
+inventarla.
+
+Detalle completo en `README.md`.
+
+------------------------------------------------------------------------
+
 # 15. Dashboard
 
 El dashboard debe responder:

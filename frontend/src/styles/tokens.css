@@ -1,0 +1,153 @@
+/* SUMA design tokens — the single source of truth for the visual system.
+   Every value here comes from docs/designContext.pdf. Components reference
+   these names only; a raw hex in a component is a bug.
+
+   Dark mode is meant to be derived by reassigning these tokens, without
+   touching a single component (design system §20). */
+
+:root {
+  /* ---- Brand -------------------------------------------------------
+     A green → deep blue → violet gradient. Used RARELY: identity, the AI
+     avatar, and active voice. Never a page background or a normal button. */
+  --brand-green: #2E9E6B;
+  --brand-deep: #12314F;
+  --brand-violet: #5B34D6;
+  --brand-gradient: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-deep) 55%, var(--brand-violet) 100%);
+
+  /* ---- Action ------------------------------------------------------
+     Primary action is neutral ink, NOT green: it removes the emotional bias
+     of green and leaves colour free to carry financial meaning. */
+  --action-primary: #131A2A;   /* 15.4:1 on surface */
+  --action-hover: #26313F;
+  --action-pressed: #0A121F;
+  --action-subtle: #F1F2EF;    /* ghost button background */
+
+  /* ---- AI / positive ---------------------------------------------- */
+  --positive: #0E7A55;         /* income, success */
+  --ai-accent: #4A2BB5;        /* AI, insight, savings */
+  --ai-subtle: #EDE8FD;
+  --disabled-fill: #B7BDC6;
+
+  /* ---- Surfaces ---------------------------------------------------- */
+  --background: #FBFBFA;
+  --surface: #FFFFFF;
+  --surface-subtle: #F4F5F3;
+  --border: #E4E6E1;           /* cards, dividers -- decorative, exempt */
+  --border-subtle: #EFF0EC;
+  /* The spec requires "bordes de control >= 3:1", but --border measures
+     1.21:1 on --background. Interactive controls (inputs, selects, textareas)
+     use this darker border so their boundary is identifiable per WCAG 1.4.11;
+     non-interactive surfaces keep the softer --border. */
+  --border-control: #90928D;   /* 3.04:1 on background */
+
+  /* ---- Text --------------------------------------------------------- */
+  --text-primary: #131A2A;     /* 15.4:1 */
+  --text-secondary: #5A6472;   /* 6.1:1  */
+  /* Spec says #767F8C / "4.6:1", but that measures 3.91:1 on --background and
+     3.70:1 on --surface-subtle -- below the 4.5:1 the same spec requires for
+     normal text. Darkened to the nearest passing value; still clearly lighter
+     than --text-secondary. See docs/DESIGN_SYSTEM.md § Deviations. */
+  --text-tertiary: #68717E;    /* 4.77:1 on background, 4.52:1 worst case */
+  --text-disabled: #B7BDC6;    /* never carries information */
+
+  /* ---- System states ------------------------------------------------ */
+  --success: #0E7A55;
+  --warning: #9A5B00;
+  --error: #B3261E;
+  --info: #2A5CB8;
+
+  /* ---- Financial semantics -----------------------------------------
+     The amount is ALWAYS primary ink. Colour lives in the identifier
+     (dot, icon, label), never in the number. Spending is not an error. */
+  --fin-income: var(--positive);
+  --fin-savings: var(--brand-violet);
+  --fin-amount: var(--text-primary);
+
+  /* ---- Data palette (colour-blind safe: every step shifts hue AND
+     luminosity; verified for deuteranopia/protanopia/tritanopia) ------- */
+  --chart-1: #0B5C41;
+  --chart-2: #9A5B00;
+  --chart-3: #4A2BB5;
+  --chart-4: #7FB8DE;
+  --chart-5: #C4699B;
+  --chart-6: #6B7280;
+
+  /* ---- Typography ---------------------------------------------------
+     Inter is the open substitute for the licensed brand grotesque; the
+     system stack catches the case where Inter isn't available. */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --text-display: 600 40px/44px var(--font-sans);
+  --text-h1: 600 30px/36px var(--font-sans);
+  --text-h2: 600 24px/30px var(--font-sans);
+  --text-h3: 600 19px/26px var(--font-sans);
+  --text-body-lg: 400 18px/28px var(--font-sans);
+  --text-body: 400 16px/26px var(--font-sans);
+  --text-body-sm: 400 14px/22px var(--font-sans);
+  --text-label: 600 13px/17px var(--font-sans);
+  --text-caption: 500 12px/16px var(--font-sans);
+  --text-chat: 400 16.5px/27px var(--font-sans);
+  --text-amount-lg: 600 34px/38px var(--font-sans);
+  --text-amount: 600 20px/24px var(--font-sans);
+
+  --tracking-display: -0.035em;
+  --tracking-h1: -0.03em;
+  --tracking-h2: -0.02em;
+  --tracking-label: 0.02em;
+
+  /* ---- Spacing · base-4 scale --------------------------------------
+     Whitespace is part of the product language. Don't compress it. */
+  --space-1: 4px;    /* icon↔text inside a chip      */
+  --space-2: 8px;    /* small sibling elements       */
+  --space-3: 12px;   /* chip and dense row padding   */
+  --space-4: 16px;   /* base horizontal padding, mobile */
+  --space-5: 20px;   /* card padding                 */
+  --space-6: 24px;   /* between chat messages        */
+  --space-8: 32px;   /* between content blocks       */
+  --space-10: 40px;  /* breathing room before a primary action */
+  --space-12: 48px;  /* sections within a screen     */
+  --space-16: 64px;  /* empty states, onboarding     */
+
+  /* ---- Radius -------------------------------------------------------- */
+  --radius-xs: 4px;    /* tags, bars            */
+  --radius-sm: 8px;    /* small inputs          */
+  --radius-md: 12px;   /* buttons, fields       */
+  --radius-lg: 16px;   /* cards                 */
+  --radius-xl: 24px;   /* bubbles, sheets       */
+  --radius-full: 999px;/* chips, voice, avatars */
+
+  /* ---- Elevation ----------------------------------------------------
+     Hierarchy comes from surface contrast, borders and space. Shadow is
+     only for things that genuinely float. */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px rgba(19, 26, 42, 0.04), 0 1px 3px rgba(19, 26, 42, 0.06);
+  --shadow-medium: 0 4px 12px rgba(19, 26, 42, 0.08), 0 2px 4px rgba(19, 26, 42, 0.04);
+  --shadow-high: 0 12px 32px rgba(19, 26, 42, 0.12), 0 4px 8px rgba(19, 26, 42, 0.06);
+
+  /* ---- Motion · communicates status, never decorates ---------------- */
+  --motion-instant: 120ms;  /* control state changes  */
+  --motion-quick: 180ms;    /* chips, toasts          */
+  --motion-base: 240ms;     /* message entry, save confirm */
+  --motion-slow: 320ms;     /* sheets, screen transitions  */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);      /* entrances, no bounce */
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);    /* voice loops          */
+
+  /* ---- Layout -------------------------------------------------------- */
+  --header-height: 56px;
+  --thread-max: 720px;    /* the thread never spans the full screen */
+  --tablet-max: 640px;
+  --sidebar-width: 280px;
+  --control-height: 48px; /* buttons and inputs, mobile default */
+  --touch-min: 44px;      /* minimum interactive area */
+}
+
+/* Motion reduces to opacity only; the voice pulse becomes a static border
+   with a label (design system §18, §19). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-quick: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+  }
+}

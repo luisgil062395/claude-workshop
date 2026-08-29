@@ -38,3 +38,24 @@ export const extractExpense = (text, inputMethod) =>
     method: "POST",
     body: JSON.stringify({ text, input_method: inputMethod }),
   });
+
+// ---- Goals and runway -------------------------------------------------
+// Every figure in these responses is computed in Django. The frontend only
+// formats and displays -- it never does financial arithmetic.
+
+export const listGoals = () => request("/goals/");
+export const createGoal = (goal) =>
+  request("/goals/", { method: "POST", body: JSON.stringify(goal) });
+export const updateGoal = (id, changes) =>
+  request(`/goals/${id}/`, { method: "PATCH", body: JSON.stringify(changes) });
+export const deleteGoal = (id) =>
+  request(`/goals/${id}/`, { method: "DELETE" });
+
+export const getRunway = () => request("/runway/");
+export const saveRunway = (plan) =>
+  request("/runway/", { method: "PUT", body: JSON.stringify(plan) });
+
+// Asks a question about the user's money. Every figure in the answer was
+// computed by Django first -- Claude only phrases the result.
+export const askSuma = (question) =>
+  request("/ask/", { method: "POST", body: JSON.stringify({ question }) });

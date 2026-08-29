@@ -12,13 +12,28 @@ SUMA is a responsive web application for tracking personal expenses without the 
 
 ---
 
+## Design system
+
+SUMA follows the design specification documented in
+[`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
+The original design reference is available at `docs/designContext.pdf`.
+
+Tokens live in `frontend/src/styles/tokens.css` — colour, typography, spacing,
+radius, elevation and motion. **A raw hex value in a component is a bug.** Two
+tokens deviate from the PDF's literal values to satisfy the PDF's own WCAG
+rules; both are documented under *Deviations*.
+
+---
+
 ## 2. What this branch proposes
 
 A **deliberately small monolith**: one Django backend, one SQLite file, one React SPA, and one external API.
 
 | Layer | Choice |
 |---|---|
-| Frontend | React 19 + Vite 7 |
+| Frontend | React 19 + Vite 7, styled with the SUMA design system |
+| Icons | Phosphor Icons (`@phosphor-icons/react`) — the design system's official library |
 | Backend | Django 6.1 + Django REST Framework 3.18 |
 | Database | SQLite (single file) |
 | AI | Anthropic Claude API (`anthropic` SDK, model `claude-opus-5`) — interpretation only |
@@ -27,7 +42,7 @@ A **deliberately small monolith**: one Django backend, one SQLite file, one Reac
 
 **Why this shape.** The spec's core flow is *unstructured input → AI extraction → validation → user review → save → metrics*. That flow needs exactly two things the architecture must get right: a single validation gate that every expense passes through regardless of input method, and financial arithmetic that is reproducible rather than generated. Everything else is presentation. A single Django app with one serializer as that gate, plus a React client, delivers both without any distributed machinery.
 
-The scope was chosen for an MVP/workshop, optimizing for a developer strongest in Python who wants to understand every layer. Explicitly **not** used: Docker, Redis, Celery or any queue, microservices, cloud services, a second database, an object store, a separate OCR engine, or a speech-to-text service. Total dependency count is **7 packages** (3 Python, 4 JavaScript). Voice transcription added none: it uses the browser's built-in Web Speech API rather than a speech-to-text service.
+The scope was chosen for an MVP/workshop, optimizing for a developer strongest in Python who wants to understand every layer. Explicitly **not** used: Docker, Redis, Celery or any queue, microservices, cloud services, a second database, an object store, a separate OCR engine, or a speech-to-text service. Total dependency count is **8 packages** (3 Python, 5 JavaScript). Voice transcription added none: it uses the browser's built-in Web Speech API rather than a speech-to-text service.
 
 Two small simplifications worth noting because they remove entire categories of configuration:
 
@@ -107,7 +122,103 @@ PATCH  /api/expenses/<uuid>/   update
 DELETE /api/expenses/<uuid>/   delete
 GET    /api/categories/        category vocabulary for the UI
 POST   /api/extract/           natural language → UNSAVED draft
+
+GET    /api/goals/             savings goals, progress computed per request
+POST   /api/goals/             create a goal
+GET    /api/goals/<uuid>/      retrieve
+PATCH  /api/goals/<uuid>/      update
+DELETE /api/goals/<uuid>/      delete
+GET    /api/runway/            plan + observed spending + scenarios
+PUT    /api/runway/            update the plan inputs
+POST   /api/ask/               a question → an explanation of computed figures
 ```
+
+### Goals and financial runway
+
+Two questions this answers: *"¿cuánto llevo de mi meta?"* and *"perdí mi trabajo,
+¿cuánto me dura el dinero?"*
+
+**Every number is computed in Python** (`expenses/finance.py`) from stored data.
+Claude is not involved in any of it — financial arithmetic has to be
+reproducible and auditable.
+
+```
+runway_months        = savings / (monthly_expenses − monthly_income)
+max_monthly_spending = monthly_income + (savings / desired_runway_months)
+```
+
+`GET /api/runway/` returns the stored inputs plus everything derived: observed
+spending from real expenses, and **exactly three scenarios** — current pace,
+essential-only, and the target — because the design system asks for one idea at
+a time, not a spreadsheet.
+
+```jsonc
+{
+  "plan": { "current_savings": "45000.00", "monthly_income": "0.00", ... },
+  "observed_spending": null,        // null = not enough history. Never fabricated.
+  "scenarios": [
+    { "key": "current",   "label": "Tu ritmo actual",  "monthly_spending": "14000.00", "months": "3.2", "source": "provided" },
+    { "key": "essential", "label": "Solo lo esencial", "monthly_spending": "11000.00", "months": "4.1" },
+    { "key": "target",    "label": "Que dure 6 meses", "monthly_spending": "7500.00",
+      "difference": "6500.00", "allowance": { "weekly": "1724.93", "daily": "246.38" } }
+  ]
+}
+```
+
+**No `Infinity`, no `NaN`, no misleading figure.** Undefined cases return a
+`status` instead of a number: `sustainable` (income covers spending — savings
+aren't being consumed), `no_savings`, `no_expenses`, and `null` observed
+spending when there is too little history. Spending limits round **down**;
+descriptive figures round half-up. All money crosses the wire as a decimal
+string, never a float.
+
+**Existing expenses feed it.** With ≥5 expenses spanning ≥14 days, SUMA derives
+the monthly average and splits it essential vs. discretionary, and the UI offers
+those figures rather than asking the user to retype what SUMA already knows.
+Below that threshold it says so plainly. Every figure is labelled *"Calculado de
+tus gastos"* or *"Lo que tú indicaste"*.
+
+### `POST /api/ask/` — conversational answers
+
+```jsonc
+// request
+{ "question": "Perdí mi trabajo. ¿Cuánto debería gastar?" }
+
+// response
+{
+  "answer": "Lamento lo del trabajo. Ahorita tienes $45,000 registrados …",
+  "context": { /* every figure the answer was allowed to use */ },
+  "source": "claude"          // or "no_data" when there is nothing to explain
+}
+```
+
+The pipeline is strictly one-directional:
+
+```
+question → Django gathers the data → Python computes every figure
+        → structured result → Claude turns THAT into a sentence
+```
+
+**Claude never does arithmetic.** It receives finished numbers, is told in the
+prompt that it must not add, subtract, multiply, divide or estimate, and has no
+database access — `ai/` imports no models, by design. The computed `context`
+travels back with the answer so the UI can show the numbers behind it: the
+explanation is auditable, not a black box.
+
+The prompt requires answers to distinguish **facts** ("tienes $45,000
+registrados"), **calculations** ("eso equivale a 3.2 meses"), **scenarios**
+("si quisieras que durara 6 meses…") and **uncertainty** ("esto no incluye
+gastos anuales ni deudas"), in a calm tone with no guilt language.
+
+Verified live against questions whose answers are *deliberately absent* from
+the context — "si gastara $5,000 al mes, ¿cuántos meses me duraría?" (needs
+45000 ÷ 5000), "¿cuánto es eso en dólares?" (needs an FX rate), "¿cuánto gasté
+en café?" (no such breakdown). It declined all three rather than computing or
+inventing.
+
+**Essential vs. discretionary is a default, not a judgment.** Defaults live in
+`categories.py`; the user's disagreements are stored as `essential_overrides` on
+the plan, so "is transport essential *for you*" stays their call.
 
 ### `POST /api/extract/`
 
@@ -131,7 +242,11 @@ POST   /api/extract/           natural language → UNSAVED draft
 
 `input_method` and `raw_input` are set by the server from the request — the model cannot choose them. Fields Claude could not determine, **or that the serializer rejected**, are omitted and listed in `missing_fields`; the UI flags those for the user instead of inventing values. `502` means extraction failed upstream (missing key, API error, malformed output); the transcript and form are left untouched so nothing the user said is lost.
 
-**`Expense` model fields:** `id` (UUID), `amount` (`Decimal(12,2)`), `currency`, `description`, `category`, `date`, `created_at`, `input_method`, `raw_input`. Optional spec fields (`receipt_image`, `tax`, `tip`, `items`, `location`, `confidence`) are **not** modelled yet.
+**`Expense`:** `id` (UUID), `amount` (`Decimal(12,2)`), `currency`, `description`, `category`, `date`, `created_at`, `input_method`, `raw_input`. Optional spec fields (`receipt_image`, `tax`, `tip`, `items`, `location`, `confidence`) are **not** modelled yet.
+
+**`FinancialGoal`:** `id` (UUID), `name`, `target_amount`, `current_amount`, `target_date?`, `created_at`. Progress is **never stored** — it is derived on every read so a percentage cannot drift from the amounts behind it.
+
+**`RunwayPlan`:** a **singleton** (one row — the MVP is one local user, and there is no auth). `current_savings`, `monthly_income`, `essential_expenses`, `other_expenses`, `desired_runway_months?`, `essential_overrides` (JSON). This doubles as `CLAUDE.md` §12's financial profile, because its fields *are* the profile; a separate model would add a join and an ambiguity about which copy is authoritative.
 
 `date` (when the expense happened) and `created_at` (when it was recorded) are separate and neither overwrites the other, per `CLAUDE.md` §9.
 
@@ -139,11 +254,26 @@ POST   /api/extract/           natural language → UNSAVED draft
 
 | Verified how | What |
 |---|---|
-| 37 automated tests | Validation rules, category normalization, extraction parsing, draft behaviour, and that `/api/extract/` creates no `Expense` |
+| 112 automated tests | Validation, category normalization, extraction parsing, draft behaviour, `/api/extract/` creating no `Expense`, and **all runway/goal arithmetic including every edge case** |
 | Live HTTP against the running stack | Manual entry, save, list, delete; `/api/extract/` with a missing key, an invalid key, empty text, and a bad `input_method` |
 | SDK type introspection | The Claude request shape matches `OutputConfigParam {effort, format{schema, type}}` |
-| **Not yet verified** | **A live Claude extraction.** No API key was available on the machine where this was built, so the happy path has been exercised only against mocked responses. Add a key and try the example sentence — a schema or API problem surfaces as a Spanish `502`, not a crash. |
+| Live Claude calls | Real extraction (amount, currency, description, category, relative dates; zero rows created) **and** real conversational answers, including three adversarial questions whose figures were absent from the context — all three declined rather than computed |
 | **Not yet verified** | **Browser speech recognition in a real browser.** The Web Speech API cannot be driven headlessly; the component builds clean and handles the documented error codes, but needs a manual click-through in Chrome, Edge or Safari. |
+
+**Relative date resolution, verified live** (run on Saturday 2026-08-29):
+
+| Said | Resolved date | |
+|---|---|---|
+| "Hoy gasté 50 pesos en café" | `2026-08-29` | `food`, 50.00 MXN |
+| "Ayer gasté 180 pesos en Costco" | `2026-08-28` | `groceries`, 180.00 MXN |
+| "Antier pagué 90 pesos de Uber" | `2026-08-27` | `transportation`, 90.00 MXN |
+| "Hace dos días gasté 200 en la farmacia" | `2026-08-27` | `health`, 200.00 MXN |
+| "El viernes pasado gasté 350 en el cine" | `2026-08-28` | `entertainment`, 350.00 MXN |
+| "Two days ago I spent 45 dollars on lunch" | `2026-08-27` | `food`, 45.00 **USD** — currency detected |
+| "Gasté 1200 en el dentista" (no date said) | `2026-08-29` | defaults to today, per spec |
+| "Fui al super de Costco ayer" (no amount said) | `2026-08-28` | `missing_fields: ["amount"]` + a note — **null, not invented** |
+
+Note on *"el viernes pasado"*: the prompt resolves it to the most recent Friday strictly before today, which on a Saturday means yesterday. That is deliberate and documented in `ai/prompts.py`; colloquially some speakers mean the Friday of the previous week.
 
 ## 5. Development status
 
@@ -158,11 +288,18 @@ POST   /api/extract/           natural language → UNSAVED draft
 - **Voice input** — Web Speech API (`es-MX`), in-browser transcription, editable transcript, `Listo / Escuchando… / Transcribiendo… / Entendiendo… / Revisión` states, graceful handling of unsupported browsers, denied permission, no speech, cancellation and recognition errors
 - **Relative date resolution** — prompt anchors on the server's local date in `America/Mexico_City`
 - Draft review — extracted values populate the existing form; every field editable; undetermined fields flagged; **nothing saves without an explicit click**
-- 37 automated tests (`manage.py test expenses`)
+- 112 automated tests (`manage.py test expenses`)
 - React SPA: manual form, history table, delete
 - Vite → Django proxy (no CORS configuration anywhere)
 - Spanish UI; accessible markup (labels, `aria-invalid`, `aria-describedby`, `role="status"`, `aria-pressed`, table `scope`/`caption`, visible focus, state never signalled by colour alone, `prefers-reduced-motion`)
-- Responsive single-column → two-column layout
+- **SUMA design system applied** — semantic tokens, Inter type scale, base-4 spacing, neutral-ink primary actions, gradient reserved for the voice control and brand mark, Phosphor category icons, 72px transaction rows with `HOY`/`AYER` grouping, amounts in neutral ink (never red)
+- Mobile-first responsive layout: single thread, ≤640px tablet, ≤720px desktop
+- Contrast verified by computation: **0 WCAG AA failures** across all token pairs in use
+- **Savings goals** — create, list, delete; remaining amount, percentage, and required monthly contribution when a target date is set; accessible progress bar paired with a "42% completado" text label
+- **Financial runway** — savings, income, essential and other expenses, optional target; current runway, maximum monthly spending for a target, and the current-vs-target difference
+- **Observed spending from real expenses** — monthly average split essential/discretionary, offered as a suggestion; explicitly absent when history is too thin
+- **Three scenarios** — current / essential-only / target, with weekly and daily reference guides
+- **Conversational answers** (`POST /api/ask/`) — ask about your money in Spanish and get the computed figures explained; Claude phrases, Python calculates, and the numbers behind each answer are disclosable in the UI
 - Production build verified
 
 See **Verification status** in §4 for what was proven by tests versus what still needs a manual pass with a real API key and a real browser.
@@ -176,7 +313,6 @@ See **Verification status** in §4 for what was proven by tests versus what stil
 - Dashboard and metrics (`metrics.py`, deterministic aggregates) — **not started**
 - Receipt photo upload and extraction — **not started**; no image handling exists
 - Chat assistant — **not started**
-- Financial profile, goals and scenario guidance — **not started**
 - History search, filtering and sorting
 - Client-side routing (single page today; `react-router` not installed)
 - Conversational correction of saved expenses
@@ -258,6 +394,9 @@ There is **no authentication** in this branch, and DRF is configured with `Allow
 claude-workshop/
 ├── CLAUDE.md                     full product specification
 ├── README.md                     this file
+├── docs/
+│   ├── DESIGN_SYSTEM.md          implementation rules for the visual system
+│   └── designContext.pdf         original design reference (17 pages)
 ├── .gitignore                    .venv, node_modules, db.sqlite3, media/, .env
 │
 ├── backend/
@@ -284,18 +423,21 @@ claude-workshop/
 │           └── test_extraction.py    extraction boundary, draft, no-save
 │
 └── frontend/
-    ├── package.json              react, react-dom, vite, @vitejs/plugin-react
+    ├── package.json              react, react-dom, vite, @vitejs/plugin-react, @phosphor-icons/react
     ├── vite.config.js            the /api → :8000 proxy
     ├── index.html
     └── src/
         ├── main.jsx
-        ├── App.jsx               owns the shared form state
+        ├── App.jsx               conversational shell; owns shared form state
         ├── api.js                every fetch() in the app
-        ├── styles.css            one stylesheet, mobile-first
+        ├── categories.js         category → Phosphor icon mapping
+        ├── styles.css            global styles, all token-driven
+        ├── styles/
+        │   └── tokens.css        THE design system source of truth
         └── components/
-            ├── VoiceExpenseInput.jsx   mic, transcript, extraction states
-            ├── ExpenseForm.jsx         controlled; shared by both paths
-            └── ExpenseList.jsx
+            ├── VoiceExpenseInput.jsx   voice states, transcript, extraction
+            ├── ExpenseForm.jsx         review + manual entry, shared by both
+            └── ExpenseList.jsx         72px rows, HOY/AYER grouping
 ```
 
 Planned but not yet created: `backend/expenses/metrics.py`, `frontend/src/pages/`.
@@ -355,7 +497,7 @@ Planned but not yet created: `backend/expenses/metrics.py`, `frontend/src/pages/
 
 In priority order. Each ends with something that demonstrably works.
 
-1. **Manual verification pass on voice** — add a real `ANTHROPIC_API_KEY` and click through the flow in Chrome or Safari: confirm live extraction of *"Ayer gasté 180 pesos en Costco en el súper"*, and confirm the relative dates `hoy`, `ayer`, `antier`, `el viernes pasado` and `hace dos días` resolve to the right calendar dates. This is the only part of the voice feature that automated tests cannot cover.
+1. **Browser click-through of the voice UI** — the one part of the feature automated tests cannot cover: press *Hablar* in Chrome or Safari and confirm the microphone prompt, the listening states and the transcript. Server-side extraction is already verified live (see §4).
 2. **Dashboard and metrics** — `metrics.py` with deterministic ORM aggregates, `GET /api/metrics/`, week/month totals, category breakdown as an accessible text table, plus unit tests. The largest remaining P0 gap.
 3. **Receipt upload** — client-side image downscaling, multipart upload to the *same* `/api/extract/` endpoint with an image block, same draft, same review, same save path.
 4. **History search and filtering** — query parameters on the existing list endpoint, so mistakes are easy to find and correct.

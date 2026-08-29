@@ -53,3 +53,29 @@ def normalize(value):
             return category.value
 
     return None
+
+
+# Which categories are essential *by default*. This is a starting point, not a
+# judgment: CLAUDE.md and the runway feature both require that the user can
+# disagree, because circumstances differ (transport is essential if you commute
+# to work, discretionary if you don't). Overrides live on the RunwayPlan, so
+# this stays a default and never becomes a fact baked into the schema.
+DEFAULT_ESSENTIAL = {
+    Category.HOUSING,
+    Category.GROCERIES,
+    Category.BILLS,
+    Category.HEALTH,
+    Category.TRANSPORTATION,
+    Category.EDUCATION,
+}
+
+
+def is_essential(slug, overrides=None):
+    """Is this category essential for this user?
+
+    `overrides` is the user's own {slug: bool} map; anything absent falls back
+    to DEFAULT_ESSENTIAL.
+    """
+    if overrides and slug in overrides:
+        return bool(overrides[slug])
+    return slug in DEFAULT_ESSENTIAL

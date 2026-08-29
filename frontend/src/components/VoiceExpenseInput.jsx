@@ -1,35 +1,39 @@
 import { useEffect, useRef, useState } from "react";
+import { Microphone, PencilSimple, Stop, WarningCircle } from "@phosphor-icons/react";
 import { extractExpense } from "../api";
 
 // Feature detection at module load. Firefox has no support at all, so the mic
-// button is hidden rather than offered and then failing.
+// control is not offered there rather than offered and then failing.
 const SpeechRecognition =
   typeof window !== "undefined" &&
   (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-// CLAUDE.md section 22. "Revisión" is set by the parent once a draft lands.
-const LABELS = {
-  idle: "Listo",
-  listening: "Escuchando...",
-  transcribing: "Transcribiendo...",
-  extracting: "Entendiendo...",
-  done: "Revisión",
+// The canonical voice states. Every one has visible text: the state is
+// understandable with the sound off, with a screen reader, or without
+// perceiving colour. Animation never carries meaning on its own.
+const STATES = {
+  idle:          { label: "Toca para hablar",     tone: "resting" },
+  listening:     { label: "Te escucho…",          tone: "active" },
+  transcribing:  { label: "Transcribiendo…",      tone: "active" },
+  extracting:    { label: "Entendiendo…",         tone: "active" },
+  review:        { label: "Revisa lo que entendí", tone: "done" },
+  error:         { label: "No te escuché bien",   tone: "error" },
+  cancelled:     { label: "Cancelado",            tone: "resting" },
 };
 
-// Recognition error codes -> plain Spanish. Anything unlisted falls through to
+// Recognition error codes → plain Spanish. Anything unlisted falls through to
 // a generic message rather than showing the user a raw error code.
 const RECOGNITION_ERRORS = {
   "not-allowed":
     "No diste permiso al micrófono. Puedes activarlo en tu navegador o escribir el gasto.",
   "service-not-allowed":
-    "El navegador bloqueó el reconocimiento de voz. Puedes escribir el gasto.",
-  "no-speech": "No escuché nada. Intenta de nuevo o escribe el gasto.",
-  "audio-capture":
-    "No se encontró un micrófono disponible. Puedes escribir el gasto.",
+    "Tu navegador bloqueó el reconocimiento de voz. Puedes escribir el gasto.",
+  "no-speech": "No te escuché bien. Intenta de nuevo o escríbelo.",
+  "audio-capture": "No encontré un micrófono disponible. Puedes escribir el gasto.",
   network: "Falló la conexión del reconocimiento de voz. Puedes escribir el gasto.",
 };
 
-export default function VoiceExpenseInput({ onDraft }) {
+export default function VoiceExpenseInput({ onDraft, onWriteInstead }) {
   const [phase, setPhase] = useState("idle");
   const [transcript, setTranscript] = useState("");
   const [interim, setInterim] = useState("");
@@ -40,8 +44,8 @@ export default function VoiceExpenseInput({ onDraft }) {
   const [source, setSource] = useState("text");
 
   const recognitionRef = useRef(null);
-  // Tracks whether the user pressed "Detener" so onend can tell a cancellation
-  // from a natural end and skip extraction.
+  // Lets onend tell a user cancellation from a natural end, so a cancel
+  // doesn't trigger extraction.
   const cancelledRef = useRef(false);
 
   // Stop any live recognition if the component goes away mid-listen.
@@ -49,11 +53,7 @@ export default function VoiceExpenseInput({ onDraft }) {
 
   async function runExtraction(text, inputMethod) {
     const clean = text.trim();
-    if (!clean) {
-      setError("No hay texto que interpretar.");
-      setPhase("idle");
-      return;
-    }
+    if (!clean) return;
 
     setPhase("extracting");
     setError("");
@@ -63,20 +63,15 @@ export default function VoiceExpenseInput({ onDraft }) {
       const { missing_fields: missing, notes: draftNotes, ...fields } = draft;
       onDraft(fields, missing || []);
       if (draftNotes) setNotes(draftNotes);
-      if (missing?.length) {
-        setError(
-          "SUMA no pudo determinar todos los datos. Revisa los campos marcados en el formulario."
-        );
-      }
-      setPhase("done");
+      setPhase("review");
     } catch (requestError) {
       // The transcript stays on screen and the form is untouched, so nothing
-      // the user said or typed is lost. CLAUDE.md 32.12.
+      // the user said is lost.
       setError(
         requestError.fields?.detail ||
-          "No se pudo interpretar el texto. Revisa que el servidor esté disponible, o captura el gasto manualmente."
+          "No pude interpretar el texto. Revisa tu conexión o escribe el gasto."
       );
-      setPhase("idle");
+      setPhase("error");
     }
   }
 
@@ -85,10 +80,11 @@ export default function VoiceExpenseInput({ onDraft }) {
     setNotes("");
     setTranscript("");
     setInterim("");
-    cancelledRef.current = false;
     setSource("text");
+    cancelledRef.current = false;
 
-    // Constructed only now: this is the click that asks for microphone access.
+    // Constructed only now: this click is what asks for microphone access.
+    // Nothing requests the microphone on page load.
     const recognition = new SpeechRecognition();
     recognition.lang = "es-MX";
     recognition.interimResults = true;
@@ -113,109 +109,134 @@ export default function VoiceExpenseInput({ onDraft }) {
     };
 
     recognition.onerror = (event) => {
-      if (event.error === "aborted") return; // user pressed Detener
+      if (event.error === "aborted") return; // the user pressed Cancelar
       setError(
         RECOGNITION_ERRORS[event.error] ||
-          "No se pudo reconocer la voz. Puedes escribir el gasto."
+          "No pude reconocer la voz. Puedes escribir el gasto."
       );
-      setPhase("idle");
+      setPhase("error");
     };
 
     recognition.onend = () => {
       recognitionRef.current = null;
       setInterim("");
       if (cancelledRef.current) {
-        setPhase("idle");
+        setPhase("cancelled");
         return;
       }
       if (finalText.trim()) runExtraction(finalText, "voice");
-      else setPhase((current) => (current === "listening" ? "idle" : current));
+      else setPhase((current) => (current === "listening" ? "error" : current));
     };
 
     recognitionRef.current = recognition;
     try {
       recognition.start();
     } catch {
-      setError("No se pudo iniciar el micrófono. Puedes escribir el gasto.");
-      setPhase("idle");
+      setError("No pude iniciar el micrófono. Puedes escribir el gasto.");
+      setPhase("error");
     }
   }
 
-  function stopListening() {
+  function cancel() {
     cancelledRef.current = true;
     recognitionRef.current?.stop();
   }
 
   const listening = phase === "listening" || phase === "transcribing";
   const busy = phase === "extracting";
+  const state = STATES[phase];
 
   return (
     <section className="voice" aria-labelledby="voice-heading">
-      <h2 id="voice-heading">Registrar por voz</h2>
+      <h2 id="voice-heading" className="visually-hidden">
+        Registrar un gasto por voz
+      </h2>
 
-      {!SpeechRecognition ? (
-        <p className="notice">
-          Tu navegador no permite el reconocimiento de voz. Escribe el gasto abajo
-          para que SUMA lo interprete, o captúralo directamente en el formulario.
-        </p>
-      ) : (
-        <p className="hint">
-          Di algo como &laquo;ayer gasté 180 pesos en Costco en el súper&raquo;.
-        </p>
-      )}
-
-      <div className="voice-controls">
-        {SpeechRecognition && (
+      <div className="voice-stage">
+        {SpeechRecognition ? (
           <button
             type="button"
-            onClick={listening ? stopListening : startListening}
+            className={`voice-button is-${state.tone}`}
+            onClick={listening ? cancel : startListening}
             disabled={busy}
-            aria-pressed={listening}
+            aria-label={listening ? "Detener la grabación" : "Hablar para registrar un gasto"}
           >
-            {/* Text, not just colour, carries the state. The icon is decorative. */}
-            <span aria-hidden="true">{listening ? "■" : "●"}</span>{" "}
-            {listening ? "Detener" : "Hablar"}
+            {listening ? (
+              <Stop size={28} weight="fill" aria-hidden="true" />
+            ) : (
+              <Microphone size={28} weight={busy ? "fill" : "regular"} aria-hidden="true" />
+            )}
           </button>
+        ) : (
+          <p className="voice-unsupported">
+            Tu navegador no permite dictar. Escribe el gasto y yo lo interpreto.
+          </p>
         )}
 
-        {/* The status line is the single announcement point for every phase. */}
-        <p className="voice-status" role="status" aria-live="polite">
-          <span className={`phase phase-${phase}`}>{LABELS[phase]}</span>
-          {interim && <span className="interim"> {interim}</span>}
+        {/* Single announcement point for every voice state. Text always
+            present -- never animation or colour alone. */}
+        <p className="voice-state" role="status" aria-live="polite">
+          {state.label}
         </p>
+
+        {interim && (
+          <p className="voice-interim" aria-hidden="true">
+            {interim}
+          </p>
+        )}
+
+        {/* Cancelar and "Escribirlo" are always reachable. */}
+        <div className="voice-actions">
+          {listening && (
+            <button type="button" className="btn-ghost" onClick={cancel}>
+              Cancelar
+            </button>
+          )}
+          {!listening && (
+            <button type="button" className="btn-ghost" onClick={onWriteInstead}>
+              <PencilSimple size={18} aria-hidden="true" /> Escribirlo
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="field">
+      <div className="field voice-transcript">
         <label htmlFor="transcript">Transcripción</label>
         <textarea
           id="transcript"
           rows={2}
           value={transcript}
           onChange={(event) => {
-            // Typing into an empty box means this is a typed expense, not voice.
+            // Typing into an empty box means this is typed, not dictated.
             if (!transcript) setSource("text");
             setTranscript(event.target.value);
           }}
-          placeholder="Aquí aparece lo que SUMA escuchó. Puedes corregirlo."
+          placeholder="Ej. Ayer gasté 180 pesos en Costco"
           aria-describedby="transcript-help"
         />
-        <p className="hint" id="transcript-help">
-          Puedes editar el texto y volver a interpretarlo. Nada se guarda hasta que
-          confirmes en el formulario.
+        <p className="field-hint" id="transcript-help">
+          Puedes corregir el texto y volver a interpretarlo. Nada se guarda hasta
+          que tú lo confirmes.
         </p>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => runExtraction(transcript, source)}
+          disabled={busy || listening || !transcript.trim()}
+        >
+          {busy && <span className="spinner" aria-hidden="true" />}
+          {busy ? "Entendiendo…" : "Interpretar"}
+        </button>
       </div>
 
-      <button
-        type="button"
-        className="secondary"
-        onClick={() => runExtraction(transcript, source)}
-        disabled={busy || listening || !transcript.trim()}
-      >
-        {busy ? "Interpretando..." : "Interpretar texto"}
-      </button>
+      {notes && <p className="voice-note">{notes}</p>}
 
-      {notes && <p className="notice">{notes}</p>}
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="field-message is-error" role="alert">
+          <WarningCircle size={16} weight="fill" aria-hidden="true" />
+          {error}
+        </p>
+      )}
     </section>
   );
 }
