@@ -625,14 +625,48 @@ textarea {
   fill: var(--color-brand-green);
 }
 
-.freq-bar {
-  fill: var(--color-brand-green);
-  opacity: 0.85;
+/* Weekday chart */
+.weekday-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
-.freq-bar--active,
-.freq-bar:hover {
-  opacity: 1;
+.weekday-chart__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.weekday-chart__value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+  height: 1rem;
+}
+
+.weekday-chart__track {
+  display: flex;
+  align-items: flex-end;
+}
+
+.weekday-chart__bar {
+  background: var(--color-brand-green);
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+}
+
+.weekday-chart__label {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
 .trend-chart__tooltip {

@@ -5,13 +5,14 @@ import {
   getMonthRange,
   getDailyTotals,
   getBiggestExpense,
+  getWeekdayBreakdown,
 } from "@/lib/metrics";
 import { prisma } from "@/lib/db";
 import { CATEGORY_LABELS } from "@/lib/categories";
 import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
 import { SpendingTrend } from "@/components/SpendingTrend";
-import { TransactionFrequency } from "@/components/TransactionFrequency";
+import { WeekdaySpending } from "@/components/WeekdaySpending";
 
 // Always reflect the latest expenses - never statically prerendered/cached.
 export const dynamic = "force-dynamic";
@@ -71,11 +72,11 @@ export default async function DashboardPage() {
         </div>
       </dl>
 
-      <h2>Frecuencia de transacciones (últimos 30 días)</h2>
-      <TransactionFrequency daily={dailyTotals} />
-
       <h2>Gasto diario (últimos 30 días)</h2>
       <SpendingTrend daily={dailyTotals} />
+
+      <h2>Gasto por día de la semana</h2>
+      <WeekdaySpending breakdown={getWeekdayBreakdown(dailyTotals)} />
 
       <div className="insights">
         {weekDelta !== null && (

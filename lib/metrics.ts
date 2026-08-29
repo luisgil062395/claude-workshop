@@ -92,6 +92,28 @@ export async function getDailyTotals(
   return result;
 }
 
+export type WeekdayTotal = { weekday: string; total: number; count: number };
+
+const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+export function getWeekdayBreakdown(daily: DailyTotal[]): WeekdayTotal[] {
+  const totals = new Array(7).fill(0);
+  const counts = new Array(7).fill(0);
+
+  for (const day of daily) {
+    const date = new Date(`${day.date}T00:00:00`);
+    const index = (date.getDay() + 6) % 7; // 0 = Monday ... 6 = Sunday
+    totals[index] += day.total;
+    counts[index] += day.count;
+  }
+
+  return WEEKDAY_LABELS.map((weekday, index) => ({
+    weekday,
+    total: totals[index],
+    count: counts[index],
+  }));
+}
+
 export type BiggestExpense = {
   id: string;
   description: string;
