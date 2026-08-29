@@ -10,5 +10,8 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],
+    // Test files share one real SQLite database; run them sequentially so
+    // their beforeEach/afterEach cleanup doesn't race across files.
+    fileParallelism: false,
   },
 });

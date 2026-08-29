@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { EXPENSE_CATEGORIES, CATEGORY_LABELS } from "@/lib/categories";
 import type { ExpenseCandidate } from "@/lib/expenses";
 
 type Props = {
@@ -40,38 +40,43 @@ export function ExpenseReviewCard({
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-labelledby="review-heading">
-      <h2 id="review-heading">Entendí:</h2>
+    <form onSubmit={handleSubmit} aria-labelledby="review-heading" className="card review-card">
+      <p className="review-card__eyebrow">Entendí</p>
+      <h2 id="review-heading" className="review-card__amount">
+        {currency} {amount || "0"}
+      </h2>
 
-      <div className={`field ${isUncertain("amount") ? "field--uncertain" : ""}`}>
-        <label htmlFor="review-amount">Monto</label>
-        <input
-          id="review-amount"
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          aria-describedby={isUncertain("amount") ? "amount-hint" : undefined}
-        />
-        {isUncertain("amount") && (
-          <span id="amount-hint" className="field__hint">
-            ¿Es correcto este monto?
-          </span>
-        )}
-      </div>
+      <div className="field-row">
+        <div className={`field ${isUncertain("amount") ? "field--uncertain" : ""}`}>
+          <label htmlFor="review-amount">Monto</label>
+          <input
+            id="review-amount"
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            aria-describedby={isUncertain("amount") ? "amount-hint" : undefined}
+          />
+          {isUncertain("amount") && (
+            <span id="amount-hint" className="field__hint">
+              ¿Es correcto este monto?
+            </span>
+          )}
+        </div>
 
-      <div className="field">
-        <label htmlFor="review-currency">Moneda</label>
-        <input
-          id="review-currency"
-          type="text"
-          maxLength={6}
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          required
-        />
+        <div className="field field--currency">
+          <label htmlFor="review-currency">Moneda</label>
+          <input
+            id="review-currency"
+            type="text"
+            maxLength={6}
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            required
+          />
+        </div>
       </div>
 
       <div className={`field ${isUncertain("description") ? "field--uncertain" : ""}`}>
@@ -91,42 +96,44 @@ export function ExpenseReviewCard({
         )}
       </div>
 
-      <div className={`field ${isUncertain("category") ? "field--uncertain" : ""}`}>
-        <label htmlFor="review-category">Categoría</label>
-        <select
-          id="review-category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          aria-describedby={isUncertain("category") ? "category-hint" : undefined}
-        >
-          {EXPENSE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        {isUncertain("category") && (
-          <span id="category-hint" className="field__hint">
-            No encontré una categoría exacta. ¿Cuál es correcta?
-          </span>
-        )}
-      </div>
+      <div className="field-row">
+        <div className={`field ${isUncertain("category") ? "field--uncertain" : ""}`}>
+          <label htmlFor="review-category">Categoría</label>
+          <select
+            id="review-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            aria-describedby={isUncertain("category") ? "category-hint" : undefined}
+          >
+            {EXPENSE_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABELS[c] ?? c}
+              </option>
+            ))}
+          </select>
+          {isUncertain("category") && (
+            <span id="category-hint" className="field__hint">
+              No encontré una categoría exacta. ¿Cuál es correcta?
+            </span>
+          )}
+        </div>
 
-      <div className={`field ${isUncertain("date") ? "field--uncertain" : ""}`}>
-        <label htmlFor="review-date">Fecha</label>
-        <input
-          id="review-date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          aria-describedby={isUncertain("date") ? "date-hint" : undefined}
-        />
-        {isUncertain("date") && (
-          <span id="date-hint" className="field__hint">
-            No pude entender la fecha con certeza. ¿Es correcta?
-          </span>
-        )}
+        <div className={`field ${isUncertain("date") ? "field--uncertain" : ""}`}>
+          <label htmlFor="review-date">Fecha</label>
+          <input
+            id="review-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            aria-describedby={isUncertain("date") ? "date-hint" : undefined}
+          />
+          {isUncertain("date") && (
+            <span id="date-hint" className="field__hint">
+              No pude entender la fecha con certeza. ¿Es correcta?
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="form-actions">

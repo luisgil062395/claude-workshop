@@ -23,6 +23,7 @@ type SpeechRecognitionResultLike = { transcript: string };
 type SpeechRecognitionEventLike = {
   results: ArrayLike<ArrayLike<SpeechRecognitionResultLike>>;
 };
+type SpeechRecognitionErrorEventLike = { error: string };
 type SpeechRecognitionLike = {
   lang: string;
   interimResults: boolean;
@@ -30,7 +31,7 @@ type SpeechRecognitionLike = {
   start: () => void;
   stop: () => void;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
   onend: (() => void) | null;
 };
 
@@ -107,8 +108,10 @@ export function ExpenseCapture() {
     recognition.lang = "es-MX";
     recognition.interimResults = false;
     recognition.continuous = false;
+    let gotResult = false;
 
     recognition.onresult = (event) => {
+      gotResult = true;
       const transcript = event.results[0]?.[0]?.transcript ?? "";
       setInput(transcript);
       if (transcript.trim() !== "") {
@@ -117,14 +120,31 @@ export function ExpenseCapture() {
         setStatus("idle");
       }
     };
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
+      const messages: Record<string, string> = {
+        "no-speech": "No detecté ninguna voz. Intenta de nuevo hablando justo después de presionar el botón.",
+        "audio-capture": "No pude acceder al micrófono. Revisa los permisos del sistema para este navegador.",
+        "not-allowed": "El permiso de micrófono fue denegado. Actívalo en la configuración del navegador.",
+        network: "Falló la conexión con el servicio de voz (puede requerir Google Chrome; algunos navegadores basados en Chromium no tienen acceso a este servicio).",
+        "service-not-allowed": "Este navegador no tiene acceso al servicio de reconocimiento de voz de Google. Prueba con Google Chrome.",
+      };
       setErrorMessage(
-        "No pude escucharte claramente. Puedes intentar de nuevo o escribir el gasto."
+        messages[event.error] ??
+          `No pude escucharte claramente (error: ${event.error}). Puedes intentar de nuevo o escribir el gasto.`
       );
       setStatus("error");
     };
     recognition.onend = () => {
-      setStatus((current) => (current === "listening" ? "idle" : current));
+      setStatus((current) => {
+        if (current !== "listening") return current;
+        if (!gotResult) {
+          setErrorMessage(
+            "No se recibió ninguna transcripción. Este navegador podría no tener acceso al servicio de voz de Google — prueba con Google Chrome."
+          );
+          return "error";
+        }
+        return "idle";
+      });
     };
 
     recognitionRef.current = recognition;

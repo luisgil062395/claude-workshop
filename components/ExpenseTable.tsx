@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ExpenseReviewCard } from "@/components/ExpenseReviewCard";
 import { updateExpenseAction, deleteExpenseAction } from "@/app/expenses/actions";
+import { CATEGORY_LABELS } from "@/lib/categories";
 
 type ExpenseRow = {
   id: string;
@@ -66,30 +67,30 @@ export function ExpenseTable({ expenses }: { expenses: ExpenseRow[] }) {
               <td>
                 {expense.currency} {expense.amount.toFixed(2)}
               </td>
-              <td>{expense.category}</td>
+              <td>{CATEGORY_LABELS[expense.category] ?? expense.category}</td>
               <td>{expense.date}</td>
               <td>{expense.inputMethod}</td>
               <td>
-                <button className="btn" onClick={() => setEditingId(expense.id)}>
+                <button className="btn btn--sm" onClick={() => setEditingId(expense.id)}>
                   Editar
                 </button>{" "}
                 {deletingId === expense.id ? (
                   <span>
                     ¿Eliminar?{" "}
                     <button
-                      className="btn"
+                      className="btn btn--sm btn--destructive"
                       onClick={async () => {
                         await deleteExpenseAction(expense.id);
                       }}
                     >
                       Sí, eliminar
                     </button>{" "}
-                    <button className="btn" onClick={() => setDeletingId(null)}>
+                    <button className="btn btn--sm" onClick={() => setDeletingId(null)}>
                       Cancelar
                     </button>
                   </span>
                 ) : (
-                  <button className="btn" onClick={() => setDeletingId(expense.id)}>
+                  <button className="btn btn--sm" onClick={() => setDeletingId(expense.id)}>
                     Eliminar
                   </button>
                 )}

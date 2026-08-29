@@ -1,4 +1,5 @@
 import type { CategoryBreakdown } from "@/lib/metrics";
+import { CATEGORY_LABELS } from "@/lib/categories";
 
 export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] }) {
   if (breakdown.length === 0) {
@@ -18,7 +19,7 @@ export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] })
       <tbody>
         {breakdown.map((row) => (
           <tr key={row.category}>
-            <th scope="row">{row.category}</th>
+            <th scope="row">{CATEGORY_LABELS[row.category] ?? row.category}</th>
             <td>${row.total.toFixed(2)}</td>
             <td>
               <div className="category-bar">
