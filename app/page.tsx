@@ -12,6 +12,9 @@ import { CategoryChart } from "@/components/CategoryChart";
 import { RecentExpenses } from "@/components/RecentExpenses";
 import { SpendingTrend } from "@/components/SpendingTrend";
 
+// Always reflect the latest expenses - never statically prerendered/cached.
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const now = new Date();
   const week = getWeekRange(now);
@@ -35,7 +38,7 @@ export default async function DashboardPage() {
     getSpendingByCategory(month.start, month.end),
     getDailyTotals(30, now),
     getBiggestExpense(month.start, month.end),
-    prisma.expense.findMany({ orderBy: { date: "desc" }, take: 8 }),
+    prisma.expense.findMany({ orderBy: [{ date: "desc" }, { createdAt: "desc" }], take: 8 }),
   ]);
 
   if (recentExpenses.length === 0) {

@@ -434,14 +434,22 @@ textarea {
   border-bottom: 1px solid var(--color-border);
 }
 
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
 .nav__brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   font-weight: 600;
   color: var(--color-text-primary);
-  text-decoration: none;
-  padding: var(--space-2) 0;
 }
 
 .nav__mark {
@@ -453,9 +461,8 @@ textarea {
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  padding: var(--space-3) var(--space-4);
-  margin: 0 auto;
-  max-width: 42rem;
+  padding: var(--space-3) 0;
+  margin: 0;
 }
 
 .nav__list a {
@@ -484,7 +491,12 @@ textarea {
     z-index: 10;
   }
 
+  .nav__inner {
+    padding: 0;
+  }
+
   .nav__list {
+    flex: 1;
     justify-content: space-around;
     padding: var(--space-2);
   }

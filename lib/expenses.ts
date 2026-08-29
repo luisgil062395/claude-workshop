@@ -154,7 +154,10 @@ export async function listExpenses(filters: ExpenseFilters = {}) {
           }
         : {}),
     },
-    orderBy: { [filters.sortBy ?? "date"]: filters.sortDir ?? "desc" },
+    orderBy: [
+      { [filters.sortBy ?? "date"]: filters.sortDir ?? "desc" },
+      { createdAt: "desc" },
+    ],
   });
 }
 
