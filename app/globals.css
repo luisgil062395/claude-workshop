@@ -843,6 +843,19 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
+.insight-tile__eyebrow {
+  margin: 0 0 var(--space-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-ai-accent);
+}
+
+.insight-tile__body {
+  margin: 0;
+}
+
 /* Tables */
 table {
   border-collapse: collapse;
@@ -908,6 +921,28 @@ td {
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
+}
+
+.expense-list__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.expense-table__row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.expense-list__body {
+  flex: 1;
+  min-width: 0;
 }
 
 .expense-list__description {

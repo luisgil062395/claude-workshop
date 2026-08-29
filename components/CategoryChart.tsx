@@ -1,5 +1,5 @@
 import type { CategoryBreakdown } from "@/lib/metrics";
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
 
 export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] }) {
@@ -15,10 +15,16 @@ export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] })
             {CATEGORY_LABELS[row.category] ?? row.category}
           </span>
           <div className="category-bar">
-            <div className="category-bar__fill" style={{ width: `${row.percentage}%` }} />
+            <div
+              className="category-bar__fill"
+              style={{
+                width: `${row.percentage}%`,
+                background: CATEGORY_COLORS[row.category] ?? "var(--color-brand-green)",
+              }}
+            />
           </div>
           <span className="category-bars__value">
-            ${formatAmount(row.total)}
+            −${formatAmount(row.total)}
             <span>{row.percentage}%</span>
           </span>
         </div>

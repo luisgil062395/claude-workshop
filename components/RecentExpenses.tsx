@@ -1,4 +1,4 @@
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { CATEGORY_ICONS, CATEGORY_NAMES, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
 
 type Expense = {
@@ -17,14 +17,21 @@ export function RecentExpenses({ expenses }: { expenses: Expense[] }) {
       <ul className="expense-list">
         {expenses.map((expense) => (
           <li key={expense.id} className="expense-list__item">
-            <div>
+            <span
+              className="expense-list__icon"
+              style={{ background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a` }}
+              aria-hidden="true"
+            >
+              {CATEGORY_ICONS[expense.category] ?? "📦"}
+            </span>
+            <div className="expense-list__body">
               <div className="expense-list__description">{expense.description}</div>
               <div className="expense-list__meta">
-                {CATEGORY_LABELS[expense.category] ?? expense.category} · {expense.date}
+                {CATEGORY_NAMES[expense.category] ?? expense.category} · {expense.date}
               </div>
             </div>
             <div className="expense-list__amount">
-              {expense.currency} {formatAmount(expense.amount)}
+              −{expense.currency} {formatAmount(expense.amount)}
             </div>
           </li>
         ))}

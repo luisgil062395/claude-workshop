@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ExpenseReviewCard } from "@/components/ExpenseReviewCard";
 import { updateExpenseAction, deleteExpenseAction } from "@/app/expenses/actions";
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS } from "@/lib/categories";
 import { formatAmount } from "@/lib/format";
 
 type ExpenseRow = {
@@ -64,9 +64,20 @@ export function ExpenseTable({ expenses }: { expenses: ExpenseRow[] }) {
             </tr>
           ) : (
             <tr key={expense.id}>
-              <td>{expense.description}</td>
               <td>
-                {expense.currency} {formatAmount(expense.amount)}
+                <span className="expense-table__row">
+                  <span
+                    className="expense-list__icon"
+                    style={{ background: `${CATEGORY_COLORS[expense.category] ?? "#6B7280"}1a` }}
+                    aria-hidden="true"
+                  >
+                    {CATEGORY_ICONS[expense.category] ?? "📦"}
+                  </span>
+                  {expense.description}
+                </span>
+              </td>
+              <td>
+                −{expense.currency} {formatAmount(expense.amount)}
               </td>
               <td>{CATEGORY_LABELS[expense.category] ?? expense.category}</td>
               <td>{expense.date}</td>

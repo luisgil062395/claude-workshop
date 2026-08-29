@@ -65,11 +65,11 @@ export default async function DashboardPage() {
       <dl className="totals">
         <div>
           <dt>Esta semana</dt>
-          <dd>${formatAmount(weekTotal)}</dd>
+          <dd>−${formatAmount(weekTotal)}</dd>
         </div>
         <div>
           <dt>Este mes</dt>
-          <dd>${formatAmount(monthTotal)}</dd>
+          <dd>−${formatAmount(monthTotal)}</dd>
         </div>
       </dl>
 
@@ -81,29 +81,38 @@ export default async function DashboardPage() {
 
       <div className="insights">
         {weekDelta !== null && (
-          <p className="insight-tile">
-            Esta semana gastaste <strong>${formatAmount(weekTotal)}</strong>,{" "}
-            <strong>
-              {Math.abs(weekDelta)}% {weekDelta >= 0 ? "más" : "menos"}
-            </strong>{" "}
-            que la semana pasada.
-          </p>
+          <div className="insight-tile">
+            <p className="insight-tile__eyebrow">✦ Insight financiero</p>
+            <p className="insight-tile__body">
+              Esta semana gastaste <strong>${formatAmount(weekTotal)}</strong>,{" "}
+              <strong>
+                {Math.abs(weekDelta)}% {weekDelta >= 0 ? "más" : "menos"}
+              </strong>{" "}
+              que la semana pasada.
+            </p>
+          </div>
         )}
         {topCategory && (
-          <p className="insight-tile">
-            <strong>{CATEGORY_LABELS[topCategory.category] ?? topCategory.category}</strong> es tu
-            categoría con más gasto este mes — <strong>{topCategory.percentage}%</strong> del
-            total.
-          </p>
+          <div className="insight-tile">
+            <p className="insight-tile__eyebrow">✦ Insight financiero</p>
+            <p className="insight-tile__body">
+              <strong>{CATEGORY_LABELS[topCategory.category] ?? topCategory.category}</strong> es
+              tu categoría con más gasto este mes — <strong>{topCategory.percentage}%</strong> del
+              total.
+            </p>
+          </div>
         )}
         {biggestExpense && (
-          <p className="insight-tile">
-            Tu gasto más grande este mes: <strong>{biggestExpense.description}</strong> por{" "}
-            <strong>
-              {biggestExpense.currency} {formatAmount(biggestExpense.amount)}
-            </strong>
-            .
-          </p>
+          <div className="insight-tile">
+            <p className="insight-tile__eyebrow">✦ Insight financiero</p>
+            <p className="insight-tile__body">
+              Tu gasto más grande este mes: <strong>{biggestExpense.description}</strong> por{" "}
+              <strong>
+                {biggestExpense.currency} {formatAmount(biggestExpense.amount)}
+              </strong>
+              .
+            </p>
+          </div>
         )}
       </div>
 
