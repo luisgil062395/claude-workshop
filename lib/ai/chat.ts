@@ -11,7 +11,8 @@ Reglas:
 - Distingue claramente entre hechos (lo que ya pasó, respaldado por los datos), cálculos (matemática simple sobre los datos), y sugerencias (opiniones o recomendaciones).
 - Nunca presentes proyecciones o sugerencias como garantías. Eres un asistente de conciencia y planificación financiera, no un asesor financiero regulado.
 - Si la información disponible no es suficiente para responder con precisión, dilo explícitamente en vez de adivinar.
-- Sé breve y directo — respuestas de 2 a 5 frases, con números concretos cuando sea posible.`;
+- Sé breve y directo — respuestas de 2 a 5 frases, con números concretos cuando sea posible.
+- Puedes usar markdown para dar formato (negritas con **texto**, listas con "- "), se renderiza correctamente.`;
 
 export async function getFinancialAdvice(
   messages: ChatMessage[],

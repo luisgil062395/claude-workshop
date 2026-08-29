@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
 import { sendChatMessage } from "@/app/chat/actions";
 import type { ChatMessage } from "@/lib/ai/chat";
 
@@ -122,7 +123,9 @@ export function ChatInterface() {
           ) : (
             <div key={index} className="chat__row">
               <Image src="/logo.png" alt="" width={28} height={28} className="chat__avatar" />
-              <div className="chat__bubble chat__bubble--assistant">{message.content}</div>
+              <div className="chat__bubble chat__bubble--assistant chat__markdown">
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </div>
             </div>
           )
         )}
@@ -130,7 +133,7 @@ export function ChatInterface() {
         {isSending && (
           <div className="chat__row">
             <Image src="/logo.png" alt="" width={28} height={28} className="chat__avatar" />
-            <div className="chat__bubble chat__bubble--assistant">
+            <div className="chat__bubble chat__bubble--assistant chat__bubble--thinking">
               <span className="spinner" aria-hidden="true" /> Pensando...
             </div>
           </div>
