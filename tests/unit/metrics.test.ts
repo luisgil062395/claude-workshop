@@ -5,6 +5,8 @@ import {
   getSpendingByCategory,
   getWeekRange,
   getMonthRange,
+  getDailyTotals,
+  getBiggestExpense,
 } from "@/lib/metrics";
 
 beforeEach(async () => {
@@ -62,5 +64,44 @@ describe("getSpendingByCategory", () => {
       { category: "groceries", total: 75, percentage: 75 },
       { category: "food", total: 25, percentage: 25 },
     ]);
+  });
+});
+
+describe("getDailyTotals", () => {
+  it("returns one entry per day, zero-filled, in chronological order", async () => {
+    await prisma.expense.createMany({
+      data: [
+        { amount: 40, description: "A", category: "food", date: "2026-08-27", inputMethod: "text" },
+        { amount: 60, description: "B", category: "food", date: "2026-08-27", inputMethod: "text" },
+        { amount: 20, description: "C", category: "food", date: "2026-08-25", inputMethod: "text" },
+      ],
+    });
+
+    const daily = await getDailyTotals(3, new Date("2026-08-27T10:00:00"));
+    expect(daily).toEqual([
+      { date: "2026-08-25", total: 20 },
+      { date: "2026-08-26", total: 0 },
+      { date: "2026-08-27", total: 100 },
+    ]);
+  });
+});
+
+describe("getBiggestExpense", () => {
+  it("returns the largest expense in the period", async () => {
+    await prisma.expense.createMany({
+      data: [
+        { amount: 40, description: "Small", category: "food", date: "2026-08-20", inputMethod: "text" },
+        { amount: 900, description: "Big", category: "travel", date: "2026-08-21", inputMethod: "text" },
+      ],
+    });
+
+    const biggest = await getBiggestExpense("2026-08-01", "2026-08-31");
+    expect(biggest?.description).toBe("Big");
+    expect(biggest?.amount).toBe(900);
+  });
+
+  it("returns null when there are no expenses in the period", async () => {
+    const biggest = await getBiggestExpense("2026-08-01", "2026-08-31");
+    expect(biggest).toBeNull();
   });
 });

@@ -24,6 +24,9 @@
     "url": "https://github.com/luisgil062395/claude-workshop/issues"
   },
   "homepage": "https://github.com/luisgil062395/claude-workshop#readme",
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
     "@prisma/client": "^5.22.0",

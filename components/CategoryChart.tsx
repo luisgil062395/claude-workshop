@@ -7,32 +7,21 @@ export function CategoryChart({ breakdown }: { breakdown: CategoryBreakdown[] })
   }
 
   return (
-    <table>
-      <caption>Gasto por categoría (este mes)</caption>
-      <thead>
-        <tr>
-          <th scope="col">Categoría</th>
-          <th scope="col">Total</th>
-          <th scope="col">Porcentaje</th>
-        </tr>
-      </thead>
-      <tbody>
-        {breakdown.map((row) => (
-          <tr key={row.category}>
-            <th scope="row">{CATEGORY_LABELS[row.category] ?? row.category}</th>
-            <td>${row.total.toFixed(2)}</td>
-            <td>
-              <div className="category-bar">
-                <div
-                  className="category-bar__fill"
-                  style={{ width: `${row.percentage}%` }}
-                />
-                <span>{row.percentage}%</span>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="category-bars" aria-label="Gasto por categoría este mes">
+      {breakdown.map((row) => (
+        <div className="category-bars__row" key={row.category}>
+          <span className="category-bars__label">
+            {CATEGORY_LABELS[row.category] ?? row.category}
+          </span>
+          <div className="category-bar">
+            <div className="category-bar__fill" style={{ width: `${row.percentage}%` }} />
+          </div>
+          <span className="category-bars__value">
+            ${row.total.toFixed(2)}
+            <span>{row.percentage}%</span>
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }

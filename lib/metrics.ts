@@ -58,3 +58,55 @@ export function getMonthRange(referenceDate: Date): { start: string; end: string
   const last = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
   return { start: formatDateYYYYMMDD(first), end: formatDateYYYYMMDD(last) };
 }
+
+export type DailyTotal = { date: string; total: number };
+
+export async function getDailyTotals(
+  days: number,
+  referenceDate: Date
+): Promise<DailyTotal[]> {
+  const start = new Date(referenceDate);
+  start.setDate(start.getDate() - (days - 1));
+  const startISO = formatDateYYYYMMDD(start);
+  const endISO = formatDateYYYYMMDD(referenceDate);
+
+  const expenses = await prisma.expense.findMany({
+    where: { date: { gte: startISO, lte: endISO } },
+    select: { date: true, amount: true },
+  });
+
+  const totals = new Map<string, number>();
+  for (const expense of expenses) {
+    totals.set(expense.date, (totals.get(expense.date) ?? 0) + expense.amount);
+  }
+
+  const result: DailyTotal[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const iso = formatDateYYYYMMDD(d);
+    result.push({ date: iso, total: totals.get(iso) ?? 0 });
+  }
+  return result;
+}
+
+export type BiggestExpense = {
+  id: string;
+  description: string;
+  amount: number;
+  currency: string;
+  category: string;
+  date: string;
+} | null;
+
+export async function getBiggestExpense(
+  start: string,
+  end: string
+): Promise<BiggestExpense> {
+  const expense = await prisma.expense.findFirst({
+    where: { date: { gte: start, lte: end } },
+    orderBy: { amount: "desc" },
+    select: { id: true, description: true, amount: true, currency: true, category: true, date: true },
+  });
+  return expense ?? null;
+}
