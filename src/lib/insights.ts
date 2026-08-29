@@ -119,9 +119,9 @@ export function categoryInsight(
 export function periodComparison(list: Expense[], period: Period, now = new Date()): string | null {
   const { previous, share } = previousPeriodDelta(list, period, now);
   if (previous <= 0 || share === null) return null;
-  const ref = period === "year" ? "el año pasado" : period === "month" ? "el mes pasado" : "la semana pasada";
+  const ref = period === "year" ? "del año pasado" : period === "month" ? "del mes pasado" : "de la semana pasada";
   const dir = share > 0 ? "arriba" : "abajo";
-  return `Vas ${percent(Math.abs(share))} ${dir} de ${ref}.`;
+  return `Vas ${percent(Math.abs(share))} ${dir} ${ref}.`;
 }
 
 function cap(s: string): string {

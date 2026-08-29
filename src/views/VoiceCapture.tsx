@@ -100,7 +100,7 @@ export function VoiceCapture() {
           disabled={busy}
           aria-label={active ? "Detener y guardar lo dicho" : "Tocar para hablar"}
         >
-          <BrandMark size={30} white />
+          <BrandMark size={30} />
         </button>
 
         <button type="button" className="voice__pill" onClick={() => fileRef.current?.click()}>

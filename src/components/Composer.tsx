@@ -31,7 +31,8 @@ export function Composer() {
           aria-label="Abrir captura por voz o foto"
           onClick={openVoice}
         >
-          <BrandMark size={20} white />
+          {/* El control ocupa 44×44 (§18); el círculo visible mide 36. */}
+          <span className="composer__brand-dot"><BrandMark size={18} /></span>
         </button>
 
         <label className="sr-only" htmlFor="composer-input">

@@ -57,7 +57,7 @@ export function BarChart({ data, caption }: { data: BarPoint[]; caption: string 
   return (
     <figure className="barchart">
       <div className="barchart__plot" role="img"
-           aria-label={`${caption}. ${data.map((d) => `${d.label}: ${money(d.value)}`).join(". ")}`}>
+           aria-label={`${caption.replace(/\.$/, "")}. ${data.map((d) => `${d.label}: ${money(d.value)}`).join(". ")}`}>
         {data.map((d, i) => (
           <div key={d.label} className="barchart__col">
             <div
